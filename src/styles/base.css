@@ -31,10 +31,12 @@
   --step-label: 0.75rem;
   --step-clock: clamp(4.5rem, 23vw, 13rem);
 
+  --space-xs: 0.5rem;
   --space-s: 0.75rem;
   --space-m: 1.5rem;
   --space-l: clamp(2rem, 6vh, 3.5rem);
 
+  --dot-size: 9px;
   --edge-width: 2px;
   --transition-fill: 240ms linear;
 }

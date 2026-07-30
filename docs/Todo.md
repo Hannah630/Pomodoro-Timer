@@ -32,7 +32,9 @@
 
 ## Stage 3 — 輪次與自動切換　`feat/round-cycle`
 
-- [ ] 完成次數累計、4 輪進長休息、輪次指示點
+- [x] `src/ui/rounds-view.ts` + spec（輪次指示點、完成次數）
+- [x] `.rounds` 樣式與 `--dot-size` / `--space-xs` token
+- [x] 模式切換規則本身在 Stage 1 已完成並測過，本階段未動 service
 - [ ] 驗收：第 4 輪結束進長休息，第 5 輪回短休息
 
 ## Stage 4 — 設定面板　`feat/settings`

@@ -45,9 +45,9 @@ break 結束 → focus
 
 ## 樣式系統
 
-`styles/base.css` 放 token（顏色、字級、間距、動態時間），`styles/layout.css`
-放版面與元件。**layout.css 裡不出現任何原始色碼或尺寸**，一律引用 token。
-後續階段是往上加 markup 與 class，不是加新的原始值。
+`styles/base.css` 放 token（顏色、字級、間距、動態變數），`styles/layout.css`
+放版面與元件。規則：**顏色一律走 token，`layout.css` 裡不出現任何色碼**；共用的
+字級與間距尺度也走 token；只有元件自身的一次性尺寸（例如按鈕圓角）才直接寫。
 
 兩個由 JavaScript 寫入 `:root` 的動態 token：
 
