@@ -74,12 +74,25 @@ describe('TimerService', () => {
       expect(service.getSessionDurationMs()).toBe(SHORT_BREAK_MS);
     });
 
-    it('follows a settings change', () => {
+    it('follows a settings change made while idle', () => {
       const { service } = createTimer();
 
       service.updateSettings({ focusMinutes: 10 });
 
       expect(service.getSessionDurationMs()).toBe(10 * MS_PER_MINUTE);
+    });
+
+    it('holds still when the settings change mid-session', () => {
+      const { service, advance } = createTimer();
+
+      service.start();
+      advance(60_000);
+      service.updateSettings({ focusMinutes: 10 });
+      service.tick();
+
+      // The running session keeps the length it began with, so the share of it
+      // still remaining cannot jump under the user.
+      expect(service.getSessionDurationMs()).toBe(FOCUS_MS);
     });
   });
 
@@ -368,14 +381,35 @@ describe('TimerService', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('reports the finished mode and the next one on completion', () => {
+    it('reports the finished mode, the next one and the length that ran', () => {
       const { service, advance } = createTimer();
       const listener = vi.fn();
 
       service.onComplete(listener);
       runToCompletion(service, advance);
 
-      expect(listener).toHaveBeenCalledExactlyOnceWith('focus', 'shortBreak');
+      expect(listener).toHaveBeenCalledExactlyOnceWith(
+        'focus',
+        'shortBreak',
+        FOCUS_MS,
+      );
+    });
+
+    it('reports the length the session began with, not the current setting', () => {
+      const { service, advance } = createTimer();
+      const listener = vi.fn();
+
+      service.onComplete(listener);
+      service.start();
+      service.updateSettings({ focusMinutes: 10 });
+      advance(FOCUS_MS);
+      service.tick();
+
+      expect(listener).toHaveBeenCalledExactlyOnceWith(
+        'focus',
+        'shortBreak',
+        FOCUS_MS,
+      );
     });
   });
 });

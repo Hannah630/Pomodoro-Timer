@@ -1,15 +1,5 @@
 import type { TimerSettings } from '../models/timer.model';
-
-/**
- * Only the part of the Storage API this service uses.
- *
- * Depending on the narrow interface rather than on Storage keeps the service
- * testable without a browser, and states exactly what it needs.
- */
-export interface KeyValueStorage {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-}
+import type { KeyValueStorage } from './key-value-storage';
 
 export const STORAGE_KEY = 'pomodoro-timer';
 

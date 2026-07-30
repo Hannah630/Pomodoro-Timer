@@ -92,6 +92,24 @@ localStorage key 為 `pomodoro-timer`，內容是：
 **寫入時機**：只在「完成一輪」與「修改設定」時寫。訂閱每次狀態變化去寫的話，
 一秒會寫四次，而這兩個值根本不會在 tick 時改變。
 
+### 歷史記錄用第二個 key
+
+```
+pomodoro-timer          設定與完成次數
+pomodoro-timer:history  { "version": 1, "records": [...] }
+```
+
+分開的理由：歷史會一直長大而設定不會，寫一邊不必重寫另一邊；而且**歷史壞掉不會
+連帶弄掉設定**。兩個 storage 都依賴同一個 `KeyValueStorage` 介面
+（`services/key-value-storage.ts`）。
+
+`HistoryStorage` 的驗證比 `StorageService` 嚴格——它會**逐筆檢查記錄的欄位**，
+壞的那一筆丟掉、其餘保留。差別在於設定有 `TimerService` 在下游把關，而記錄是直接
+拿去畫面上顯示的，沒有下一道關卡。
+
+保留最近 100 筆（`MAX_HISTORY_RECORDS`）。`SessionService` 在新增時裁掉最舊的，
+`HistoryStorage` 在讀寫時也各裁一次，防的是被手動編輯過的存檔。
+
 ## 已決定的取捨（MVP）
 
 | 決策 | 理由 |

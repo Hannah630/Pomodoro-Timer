@@ -11,7 +11,12 @@ import {
 } from '../models/timer.model';
 
 export type StateListener = (state: TimerState) => void;
-export type CompleteListener = (finished: TimerMode, next: TimerMode) => void;
+export type CompleteListener = (
+  finished: TimerMode,
+  next: TimerMode,
+  /** How long the finished session actually ran for. */
+  durationMs: number,
+) => void;
 export type Unsubscribe = () => void;
 
 export interface TimerServiceOptions {
@@ -39,8 +44,16 @@ export class TimerService {
   private settings: TimerSettings;
   private mode: TimerMode = 'focus';
   private status: TimerStatus = 'idle';
-  private remainingMs: number;
+  private remainingMs = 0;
   private completedFocusCount: number;
+
+  /**
+   * The length this session began with.
+   *
+   * Kept rather than recomputed, because a settings change mid-session must
+   * not retroactively change how long the running session is taken to be.
+   */
+  private sessionDurationMs = 0;
 
   /** Timestamp the current run finishes at; null unless running. */
   private endAt: number | null = null;
@@ -54,7 +67,7 @@ export class TimerService {
     this.settings = sanitizeSettings(options.settings ?? {}, DEFAULT_SETTINGS);
     this.completedFocusCount = options.completedFocusCount ?? 0;
     this.now = options.now ?? (() => Date.now());
-    this.remainingMs = this.durationMsFor(this.mode);
+    this.beginSession(this.mode);
   }
 
   getState(): TimerState {
@@ -75,7 +88,7 @@ export class TimerService {
    * time into a progress fraction.
    */
   getSessionDurationMs(): number {
-    return this.durationMsFor(this.mode);
+    return this.sessionDurationMs;
   }
 
   /**
@@ -110,7 +123,7 @@ export class TimerService {
     this.stopInterval();
     this.status = 'idle';
     this.endAt = null;
-    this.remainingMs = this.durationMsFor(this.mode);
+    this.beginSession(this.mode);
     this.emitState();
   }
 
@@ -147,7 +160,7 @@ export class TimerService {
     this.settings = sanitizeSettings(patch, this.settings);
 
     if (this.status === 'idle') {
-      this.remainingMs = this.durationMsFor(this.mode);
+      this.beginSession(this.mode);
     }
 
     this.emitState();
@@ -179,18 +192,28 @@ export class TimerService {
     this.stopInterval();
 
     const finished = this.mode;
+    const finishedDurationMs = this.sessionDurationMs;
+
     if (finished === 'focus') {
       this.completedFocusCount += 1;
     }
 
     const next = this.nextModeAfter(finished);
-    this.mode = next;
     this.status = 'idle';
     this.endAt = null;
-    this.remainingMs = this.durationMsFor(next);
+    this.beginSession(next);
 
     this.emitState();
-    this.completeListeners.forEach((listener) => listener(finished, next));
+    this.completeListeners.forEach((listener) =>
+      listener(finished, next, finishedDurationMs),
+    );
+  }
+
+  /** Enters a mode at its full length, fixing that length for the session. */
+  private beginSession(mode: TimerMode): void {
+    this.mode = mode;
+    this.sessionDurationMs = this.durationMsFor(mode);
+    this.remainingMs = this.sessionDurationMs;
   }
 
   private nextModeAfter(finished: TimerMode): TimerMode {

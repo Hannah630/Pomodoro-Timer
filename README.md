@@ -15,8 +15,9 @@ Author: Hannah
 - Counts finished focus sessions, and takes a long break after every fourth
 - An analog dial: one revolution is the session, the hand tracks what is left
 - Chimes, washes the screen and raises a desktop notification when time is up
+- Name what you are working on, and read back the last 100 finished sessions
 - Durations are editable and held to whole minutes between 1 and 120
-- Settings and the session count survive a reload
+- Settings, the session count and the history survive a reload
 - Works on a phone and on a desktop
 
 ## Tech stack
