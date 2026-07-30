@@ -47,7 +47,8 @@
 
 ## Stage 5 — 本地儲存　`feat/persistence`
 
-- [ ] `src/services/storage.service.ts`
+- [x] `src/services/storage.service.ts` + spec（版本化信封、壞資料容錯）
+- [x] `main.ts` 啟動時還原、完成一輪與改設定時寫入
 - [ ] 驗收：重整後設定與完成次數保留；localStorage 存亂碼仍能正常開啟
 
 ## Stage 6 — 通知與音效　`feat/notification`
