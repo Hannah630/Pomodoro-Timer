@@ -40,7 +40,8 @@ const roundsView = createRoundsView(app);
 const titleView = createTitleView(app, {
   onTitleChange: (raw) => applyTitle(raw),
 });
-const historyView = createHistoryView(app, {
+// The drawer sits outside #app so it can span the viewport, not the layout.
+const historyView = createHistoryView(document, {
   onClear: () => {
     session.clearHistory();
     saveHistory();

@@ -51,7 +51,8 @@
   justify-items: center;
   gap: var(--space-l);
   min-height: 100dvh;
-  padding: var(--space-l) var(--space-m);
+  /* Top padding clears the fixed History button on narrow screens. */
+  padding: calc(var(--space-l) + 2.5rem) var(--space-m) var(--space-l);
 }
 
 .session {
@@ -137,31 +138,54 @@
   text-transform: uppercase;
 }
 
-/* Borderless until you reach for it, so it reads as a caption not a form. */
-.title {
-  width: min(20rem, 100%);
+/**
+ * The technique is a timer and a sheet of paper, so the task is a ruled line
+ * with a label on it. A borderless field read as a caption; a rule reads as
+ * something to fill in, which is what it is.
+ */
+.task {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  width: min(22rem, 100%);
+}
+
+.task__label {
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.task__input {
+  width: 100%;
   padding: var(--space-xs) var(--space-s);
   border: 0;
-  border-radius: 8px;
+  border-bottom: 1px solid var(--line);
   background: transparent;
   color: var(--text);
   font-size: var(--step-title);
   text-align: center;
-  transition: background-color 150ms ease;
+  transition: border-color 150ms ease;
 }
 
-.title::placeholder {
+.task__input::placeholder {
   color: var(--muted);
 }
 
-.title:hover {
-  background: color-mix(in srgb, var(--text) 6%, transparent);
+.task__input:hover {
+  border-bottom-color: var(--muted);
 }
 
-.title:focus-visible {
-  background: color-mix(in srgb, var(--text) 6%, transparent);
+.task__input:focus {
+  border-bottom-color: var(--mode);
+}
+
+.task__input:focus-visible {
   outline: 2px solid var(--mode);
-  outline-offset: 2px;
+  outline-offset: 4px;
 }
 
 .session__time {
@@ -262,20 +286,21 @@
  * A native <details> block, so opening and closing needs no JavaScript and
  * keyboard support comes for free.
  */
-.panels {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+.panel {
   width: 100%;
   max-width: 22rem;
 }
 
+/* Outlined like the buttons, so it reads as a control and not as a caption. */
 .panel__toggle {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  padding: var(--space-s);
+  min-height: 40px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--line);
+  border-radius: 999px;
   color: var(--muted);
   font-size: var(--step-label);
   font-weight: 600;
@@ -283,6 +308,7 @@
   text-transform: uppercase;
   list-style: none;
   cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -299,6 +325,7 @@
 }
 
 .panel__toggle:hover {
+  border-color: var(--text);
   color: var(--text);
 }
 
@@ -357,9 +384,9 @@
 
 .history {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--space-s);
-  max-height: 14rem;
   margin: 0;
   padding: 0;
   overflow-y: auto;
@@ -422,6 +449,94 @@
   outline-offset: 3px;
 }
 
+/**
+ * History slides in from the right rather than living under the timer, so the
+ * list gets the full height it needs and the timer keeps the middle of the
+ * screen to itself.
+ *
+ * A <details> element cannot do this: its content is display:none while
+ * closed, and there is nothing to slide. So the open state is a class on the
+ * root, and the drawer is marked inert while shut to keep it out of the tab
+ * order.
+ */
+.drawer-toggle {
+  position: fixed;
+  top: var(--space-m);
+  right: var(--space-m);
+  z-index: 3;
+  min-height: 40px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.drawer-toggle:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.drawer-toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.scrim {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  visibility: hidden;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--transition-drawer), visibility var(--transition-drawer);
+}
+
+:root.is-history-open .scrim {
+  visibility: visible;
+  opacity: 1;
+}
+
+.drawer {
+  position: fixed;
+  z-index: 2;
+  inset-block: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  width: min(22rem, 100%);
+  padding: calc(var(--space-l) + 40px) var(--space-m) var(--space-l);
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  transform: translateX(100%);
+  transition: transform var(--transition-drawer);
+}
+
+:root.is-history-open .drawer {
+  transform: none;
+}
+
+.drawer:focus-visible {
+  outline: none;
+}
+
+.drawer__title {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
 /* Short viewports, a landscape phone above all, need the stack tightened. */
 @media (max-height: 34rem) {
   :root {
@@ -435,7 +550,11 @@
   :root,
   .button,
   .rounds__dot,
-  .title {
+  .task__input,
+  .panel__toggle,
+  .drawer,
+  .drawer-toggle,
+  .scrim {
     transition: none;
   }
 }

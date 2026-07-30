@@ -25,21 +25,56 @@ export interface HistoryView {
 }
 
 /**
- * The list of finished sessions.
+ * The history drawer.
  *
- * Rendered only when the history changes, never on a tick, so rebuilding the
- * whole list is cheap enough to keep the code simple.
+ * The list is rendered only when the history changes, never on a tick, so
+ * rebuilding the whole thing is cheap enough to keep the code simple.
+ *
+ * Opening is a class on the root rather than a <details> element, because a
+ * details body is display:none while closed and so has nothing to slide.
  */
 export function createHistoryView(
   root: ParentNode,
   handlers: HistoryHandlers,
 ): HistoryView {
+  const toggle = queryElement<HTMLButtonElement>(root, '[data-history-toggle]');
+  const drawer = queryElement(root, '[data-history-drawer]');
+  const scrim = queryElement(root, '[data-history-scrim]');
   const list = queryElement(root, '[data-history]');
   const empty = queryElement(root, '[data-history-empty]');
   const clearButton = queryElement<HTMLButtonElement>(
     root,
     '[data-history-clear]',
   );
+
+  let isOpen = false;
+
+  function setOpen(open: boolean): void {
+    isOpen = open;
+
+    document.documentElement.classList.toggle('is-history-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = open ? 'Close' : 'History';
+
+    if (open) {
+      // inert keeps the closed drawer out of the tab order, so focus cannot
+      // land on a list that is off screen.
+      drawer.removeAttribute('inert');
+      drawer.focus();
+    } else {
+      drawer.setAttribute('inert', '');
+      toggle.focus();
+    }
+  }
+
+  toggle.addEventListener('click', () => setOpen(!isOpen));
+  scrim.addEventListener('click', () => setOpen(false));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && isOpen) {
+      setOpen(false);
+    }
+  });
 
   clearButton.addEventListener('click', () => {
     // Clearing cannot be undone, so make the user say it twice.

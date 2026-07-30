@@ -37,6 +37,9 @@
   /* Quiet, now that the dial carries the countdown. */
   --field: color-mix(in srgb, var(--mode) 7%, var(--ink));
   --line: color-mix(in srgb, var(--text) 16%, transparent);
+  /* Anything that sits above the page rather than on it. */
+  --surface: color-mix(in srgb, var(--text) 6%, var(--ink));
+  --scrim: rgb(0 0 0 / 55%);
 
   --font-display: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
     sans-serif;
@@ -60,6 +63,7 @@
   --dot-size: 9px;
   --edge-width: 1px;
   --transition-fill: 240ms linear;
+  --transition-drawer: 260ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 *,
