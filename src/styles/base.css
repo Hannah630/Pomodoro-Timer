@@ -5,8 +5,20 @@
  * here once. Later stages add markup, not new raw values.
  */
 
+/**
+ * Registering --fill makes it animatable, so a single transition on the root
+ * smooths everything that reads it at once: the page field, the dial arc and
+ * the hand. Without this they would all step four times a second.
+ */
+@property --fill {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
 :root {
   color-scheme: dark;
+  transition: --fill var(--transition-fill);
 
   /* One bright accent per mode. Nothing else in the app is coloured. */
   --mode-focus: #ff4438;
@@ -22,7 +34,8 @@
   --ink: #0f1216;
   --text: #f2f3f5;
   --muted: #7c838e;
-  --field: color-mix(in srgb, var(--mode) 12%, var(--ink));
+  /* Quiet, now that the dial carries the countdown. */
+  --field: color-mix(in srgb, var(--mode) 7%, var(--ink));
   --line: color-mix(in srgb, var(--text) 16%, transparent);
 
   --font-display: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
@@ -34,15 +47,17 @@
    * Sized against whichever viewport dimension is tighter, so a landscape
    * phone does not get a clock too tall for the screen it sits on.
    */
-  --step-clock: clamp(3.5rem, min(23vw, 26vh), 13rem);
+  --step-clock: clamp(3.5rem, min(23vw, 26vh), 10rem);
 
   --space-xs: 0.5rem;
   --space-s: 0.75rem;
   --space-m: 1.5rem;
-  --space-l: clamp(2rem, 6vh, 3.5rem);
+  --space-l: clamp(1.5rem, 4vh, 2.5rem);
 
+  --dial-size: clamp(7rem, min(38vw, 34vh), 12rem);
+  --dial-hand-width: 2px;
   --dot-size: 9px;
-  --edge-width: 2px;
+  --edge-width: 1px;
   --transition-fill: 240ms linear;
 }
 
