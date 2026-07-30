@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import type { KeyValueStorage } from './key-value-storage';
 import {
   createStorageService,
   STORAGE_KEY,
   STORAGE_VERSION,
-  type KeyValueStorage,
 } from './storage.service';
 
 function createFakeStorage(stored?: string): KeyValueStorage {
