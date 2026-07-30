@@ -3,6 +3,7 @@ import './styles/layout.css';
 
 import type { TimerSettings, TimerState } from './models/timer.model';
 import { createNotificationService } from './services/notification.service';
+import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
@@ -11,6 +12,7 @@ import { MODE_LABELS } from './ui/labels';
 import { createRoundsView } from './ui/rounds-view';
 import { createSettingsView } from './ui/settings-view';
 import { createTimerView } from './ui/timer-view';
+import { createTitleView } from './ui/title-view';
 
 /**
  * Application entry point.
@@ -28,8 +30,13 @@ const timer = new TimerService({
   settings: restored?.settings,
   completedFocusCount: restored?.completedFocusCount,
 });
+const session = createSessionService();
+
 const timerView = createTimerView(app);
 const roundsView = createRoundsView(app);
+const titleView = createTitleView(app, {
+  onTitleChange: (raw) => applyTitle(raw),
+});
 const notifications = createNotificationService();
 const controlsView = createControlsView(app, {
   onStart: () => {
@@ -48,7 +55,14 @@ const settingsView = createSettingsView(app, {
 function render(state: TimerState): void {
   timerView.render(state, timer.getSessionDurationMs());
   roundsView.render(state, timer.getSettings().roundsPerLongBreak);
+  titleView.render(state.mode);
   controlsView.render(state);
+}
+
+/** Show the title the service kept, not the raw text that produced it. */
+function applyTitle(raw: string): void {
+  session.setTitle(raw);
+  titleView.setValue(session.getTitle());
 }
 
 /**

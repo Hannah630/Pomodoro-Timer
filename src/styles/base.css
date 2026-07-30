@@ -42,6 +42,7 @@
     sans-serif;
 
   --step-label: 0.75rem;
+  --step-title: 1rem;
 
   /**
    * Sized against whichever viewport dimension is tighter, so a landscape
@@ -83,4 +84,8 @@ body {
 button,
 input {
   font: inherit;
+}
+
+[hidden] {
+  display: none;
 }

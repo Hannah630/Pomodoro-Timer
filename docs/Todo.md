@@ -78,8 +78,9 @@
 
 ## Stage 9 — 標題欄位　`feat/session-title`
 
-- [ ] `src/ui/title-view.ts`（`maxlength="20"`，只在專注時段顯示）
-- [ ] `src/services/session.service.ts`（先只管標題）
+- [x] `src/ui/title-view.ts`（`render` 管顯示、`setValue` 管值，分開避免蓋掉輸入）
+- [x] `src/services/session.service.ts` + spec（trim、上限、不切斷 emoji）
+- [x] `MAX_TITLE_LENGTH` 由 service 提供，`maxLength` 屬性從 TS 設定
 - [ ] 驗收：上限 20 字、休息時隱藏、切回專注保留上次輸入
 
 ## Stage 10 — 歷史記錄　`feat/session-history`
