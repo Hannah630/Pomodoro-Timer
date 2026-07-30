@@ -1,20 +1,16 @@
 import type { SessionRecord } from '../models/session.model';
-import { MS_PER_MINUTE } from '../models/timer.model';
 import { queryElement } from './dom';
+import {
+  formatClockTime,
+  formatDuration,
+  formatTodaySummary,
+  groupByDay,
+  summarizeToday,
+  type HistoryDay,
+} from './history-format';
 
-const TIME_FORMAT = new Intl.DateTimeFormat(undefined, {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
-const DATE_TIME_FORMAT = new Intl.DateTimeFormat(undefined, {
-  month: 'short',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
+/** How long the clear button waits for the second press before giving up. */
+const CONFIRM_TIMEOUT_MS = 4_000;
 
 export interface HistoryHandlers {
   onClear(): void;
@@ -40,6 +36,7 @@ export function createHistoryView(
   const toggle = queryElement<HTMLButtonElement>(root, '[data-history-toggle]');
   const drawer = queryElement(root, '[data-history-drawer]');
   const scrim = queryElement(root, '[data-history-scrim]');
+  const summary = queryElement(root, '[data-history-summary]');
   const list = queryElement(root, '[data-history]');
   const empty = queryElement(root, '[data-history-empty]');
   const clearButton = queryElement<HTMLButtonElement>(
@@ -48,9 +45,12 @@ export function createHistoryView(
   );
 
   let isOpen = false;
+  let isConfirming = false;
+  let confirmTimeout: number | undefined;
 
   function setOpen(open: boolean): void {
     isOpen = open;
+    cancelConfirm();
 
     document.documentElement.classList.toggle('is-history-open', open);
     toggle.setAttribute('aria-expanded', String(open));
@@ -67,6 +67,13 @@ export function createHistoryView(
     }
   }
 
+  function cancelConfirm(): void {
+    window.clearTimeout(confirmTimeout);
+    isConfirming = false;
+    clearButton.textContent = 'Clear history';
+    clearButton.classList.remove('history__clear--confirming');
+  }
+
   toggle.addEventListener('click', () => setOpen(!isOpen));
   scrim.addEventListener('click', () => setOpen(false));
 
@@ -77,27 +84,58 @@ export function createHistoryView(
   });
 
   clearButton.addEventListener('click', () => {
-    // Clearing cannot be undone, so make the user say it twice.
-    if (window.confirm('Clear all history? This cannot be undone.')) {
-      handlers.onClear();
+    // Clearing cannot be undone, so ask twice. A second press on the button
+    // itself keeps the answer where the question was asked, which a native
+    // confirm dialog cannot do — and its buttons are in the browser's
+    // language, not the interface's.
+    if (!isConfirming) {
+      isConfirming = true;
+      clearButton.textContent = 'Confirm clear';
+      clearButton.classList.add('history__clear--confirming');
+      confirmTimeout = window.setTimeout(cancelConfirm, CONFIRM_TIMEOUT_MS);
+      return;
     }
+
+    cancelConfirm();
+    handlers.onClear();
   });
 
   return {
     render(records) {
       const hasRecords = records.length > 0;
+      const now = Date.now();
 
+      summary.hidden = !hasRecords;
       empty.hidden = hasRecords;
       clearButton.hidden = !hasRecords;
+      cancelConfirm();
 
+      summary.textContent = formatTodaySummary(summarizeToday(records, now));
       list.replaceChildren(
-        ...records.map((record) => buildRow(record, Date.now())),
+        ...groupByDay(records, now).map((day) => buildDay(day)),
       );
     },
   };
 }
 
-function buildRow(record: SessionRecord, now: number): HTMLElement {
+function buildDay(day: HistoryDay): HTMLElement {
+  const section = document.createElement('li');
+  section.className = 'history__day';
+
+  const label = document.createElement('h3');
+  label.className = 'history__day-label';
+  label.textContent = day.label;
+
+  const rows = document.createElement('ul');
+  rows.className = 'history__rows';
+  rows.append(...day.records.map((record) => buildRow(record)));
+
+  section.append(label, rows);
+
+  return section;
+}
+
+function buildRow(record: SessionRecord): HTMLElement {
   const row = document.createElement('li');
   row.className = 'history__item';
 
@@ -108,36 +146,15 @@ function buildRow(record: SessionRecord, now: number): HTMLElement {
     title.classList.add('history__title--untitled');
   }
 
-  const meta = document.createElement('span');
-  meta.className = 'history__meta';
-  meta.textContent = `${formatDuration(record.durationMs)} · ${formatFinishedAt(
-    record.finishedAt,
-    now,
-  )}`;
+  const duration = document.createElement('span');
+  duration.className = 'history__duration';
+  duration.textContent = formatDuration(record.durationMs);
 
-  row.append(title, meta);
+  const time = document.createElement('span');
+  time.className = 'history__time';
+  time.textContent = formatClockTime(record.finishedAt);
+
+  row.append(title, duration, time);
 
   return row;
-}
-
-function formatDuration(durationMs: number): string {
-  return `${Math.round(durationMs / MS_PER_MINUTE)} min`;
-}
-
-/** Today only needs the time; anything older needs the date to make sense. */
-function formatFinishedAt(finishedAt: number, now: number): string {
-  const format = isSameDay(finishedAt, now) ? TIME_FORMAT : DATE_TIME_FORMAT;
-
-  return format.format(new Date(finishedAt));
-}
-
-export function isSameDay(a: number, b: number): boolean {
-  const first = new Date(a);
-  const second = new Date(b);
-
-  return (
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
-  );
 }
