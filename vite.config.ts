@@ -7,7 +7,5 @@ export default defineConfig({
     // so tests can run in the faster node environment.
     environment: 'node',
     include: ['src/**/*.spec.ts'],
-    // Temporary: the skeleton has no specs yet. Remove once Stage 1 lands.
-    passWithNoTests: true,
   },
 });
