@@ -43,6 +43,23 @@ break 結束 → focus
 
 切換後 `status` 回到 `idle`，等使用者按 Start（MVP 不自動開始）。
 
+## 樣式系統
+
+`styles/base.css` 放 token（顏色、字級、間距、動態時間），`styles/layout.css`
+放版面與元件。**layout.css 裡不出現任何原始色碼或尺寸**，一律引用 token。
+後續階段是往上加 markup 與 class，不是加新的原始值。
+
+兩個由 JavaScript 寫入 `:root` 的動態 token：
+
+| Token | 意義 | 誰寫入 |
+| --- | --- | --- |
+| `--mode` | 指向當前模式的強調色（`--mode-focus` 等三選一） | `ui/timer-view.ts` |
+| `--fill` | 剩餘時間佔整段的比例，1 → 0 | `ui/timer-view.ts` |
+
+視覺主體 `.level` 是一塊固定在底部、高度為 `calc(var(--fill) * 100%)` 的色場，
+上緣一條 `--mode` 色的亮線隨倒數下沉。**JavaScript 只寫這兩個變數，不直接操作
+任何樣式**——渲染完全交給 CSS，這讓邏輯層與表現層的界線在程式碼裡看得見。
+
 ## 已決定的取捨（MVP）
 
 | 決策 | 理由 |

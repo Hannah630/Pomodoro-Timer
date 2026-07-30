@@ -23,8 +23,11 @@
 
 ## Stage 2 — 基本 UI 接線　`feat/timer-ui`
 
-- [ ] `src/ui/timer-view.ts`、`src/ui/controls-view.ts`
-- [ ] `src/styles/base.css`
+- [x] `src/ui/timer-view.ts`、`src/ui/controls-view.ts`、`src/ui/dom.ts`
+- [x] `src/styles/base.css`（token）、`src/styles/layout.css`（版面與元件）
+- [x] `index.html` 靜態骨架、`src/main.ts` 接線
+- [x] `visibilitychange` 回前景補 tick 一次
+- [x] `TimerService.getSessionDurationMs()`（UI 需要換算進度比例）
 - [ ] 驗收：Start 每秒跳動、Pause 停住、Resume 接續、Reset 回到 25:00
 
 ## Stage 3 — 輪次與自動切換　`feat/round-cycle`
