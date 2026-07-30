@@ -53,7 +53,10 @@
 
 ## Stage 6 — 通知與音效　`feat/notification`
 
-- [ ] `src/services/notification.service.ts`、`public/sounds/bell.mp3`
+- [x] `src/services/notification.service.ts`（Web Audio 合成提示音 + Notification）
+- [x] `src/ui/labels.ts`（模式名稱抽出共用，timer-view 與通知文案不重複）
+- [x] `timerView.flash()` + `.level::after` 色彩淡出（不依賴權限的降級提示）
+- [x] ~~`public/sounds/bell.mp3`~~ 改用 Web Audio 合成，不加二進位資產
 - [ ] 驗收：歸零聽得到聲音；允許權限看得到通知；拒絕權限仍有畫面提示且 console 無錯
 
 ## Stage 7 — RWD 與收尾　`feat/responsive-polish`

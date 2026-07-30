@@ -102,7 +102,9 @@ localStorage key 為 `pomodoro-timer`，內容是：
 | --- | --- |
 | 分頁切到背景被節流 | 顯示層由 deadline 法自動修正；另監聽 `visibilitychange`，回前景時立刻 tick 一次 |
 | localStorage 讀到壞資料 | 存檔帶 `version` 欄位；讀取一律 try/catch + 欄位驗證，失敗回退預設值 |
-| 音效被 autoplay policy 擋掉 | 第一次點 Start 時做 audio unlock（`play()` 後立刻 `pause()` 並歸零） |
-| Notification 權限 | `requestPermission()` 綁在 Start 按鈕（必須源自使用者手勢），拒絕時降級為畫面提示 |
+| 音效被 autoplay policy 擋掉 | 提示音用 Web Audio API 合成，不用音檔。`AudioContext` 建立時是 `suspended`，在 Start 按鈕裡 `resume()` 完成解鎖 |
+| Notification 權限 | `requestPermission()` 綁在 Start 按鈕（必須源自使用者手勢），且只在 `permission === 'default'` 時才問 |
+| `new Notification()` 在部分瀏覽器直接丟例外 | Chrome on Android 只允許透過 service worker 發通知，所以建構子包 try/catch |
+| 通知被拒絕或使用者靜音 | 每次結束一律播放一次畫面色彩淡出（`.level::after`），不依賴任何權限 |
 | Notification 需要 secure context | `localhost` 與 https 可用，`file://` 不可 — 這也是不採用「無建置純 HTML」的實際理由 |
 | DOM 更新過於頻繁 | tick 為 250ms，但只有顯示的「秒數」改變時才寫 DOM |
