@@ -5,6 +5,7 @@ import type { TimerState } from './models/timer.model';
 import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
 import { queryElement } from './ui/dom';
+import { createRoundsView } from './ui/rounds-view';
 import { createTimerView } from './ui/timer-view';
 
 /**
@@ -18,6 +19,7 @@ const app = queryElement(document, '#app');
 
 const timer = new TimerService();
 const timerView = createTimerView(app);
+const roundsView = createRoundsView(app);
 const controlsView = createControlsView(app, {
   onStart: () => timer.start(),
   onPause: () => timer.pause(),
@@ -26,6 +28,7 @@ const controlsView = createControlsView(app, {
 
 function render(state: TimerState): void {
   timerView.render(state, timer.getSessionDurationMs());
+  roundsView.render(state, timer.getSettings().roundsPerLongBreak);
   controlsView.render(state);
 }
 
