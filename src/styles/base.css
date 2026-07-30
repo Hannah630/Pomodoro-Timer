@@ -1,0 +1,63 @@
+/**
+ * Design tokens, reset and typography.
+ *
+ * Every colour, size and spacing value used anywhere in the app is declared
+ * here once. Later stages add markup, not new raw values.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* One bright accent per mode. Nothing else in the app is coloured. */
+  --mode-focus: #ff4438;
+  --mode-short-break: #37c98b;
+  --mode-long-break: #4d8dff;
+
+  /* Points at the accent of the current mode. Rewritten by timer-view. */
+  --mode: var(--mode-focus);
+
+  /* Fraction of the session still remaining, 1 -> 0. Written by timer-view. */
+  --fill: 1;
+
+  --ink: #0f1216;
+  --text: #f2f3f5;
+  --muted: #7c838e;
+  --field: color-mix(in srgb, var(--mode) 12%, var(--ink));
+  --line: color-mix(in srgb, var(--text) 16%, transparent);
+
+  --font-display: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
+
+  --step-label: 0.75rem;
+  --step-clock: clamp(4.5rem, 23vw, 13rem);
+
+  --space-s: 0.75rem;
+  --space-m: 1.5rem;
+  --space-l: clamp(2rem, 6vh, 3.5rem);
+
+  --edge-width: 2px;
+  --transition-fill: 240ms linear;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+}
