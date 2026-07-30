@@ -262,12 +262,15 @@
  * A native <details> block, so opening and closing needs no JavaScript and
  * keyboard support comes for free.
  */
-.settings {
+.panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
   width: 100%;
   max-width: 22rem;
 }
 
-.settings__toggle {
+.panel__toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -283,32 +286,36 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.settings__toggle::-webkit-details-marker {
+.panel__toggle::-webkit-details-marker {
   display: none;
 }
 
-.settings__toggle::after {
+.panel__toggle::after {
   content: '+';
 }
 
-.settings[open] .settings__toggle::after {
+.panel[open] .panel__toggle::after {
   content: '\2212';
 }
 
-.settings__toggle:hover {
+.panel__toggle:hover {
   color: var(--text);
 }
 
-.settings__toggle:focus-visible {
+.panel__toggle:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 3px;
 }
 
-.settings__fields {
+.panel__body {
+  padding-top: var(--space-s);
+  padding-bottom: var(--space-s);
+}
+
+.fields {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  padding-top: var(--space-s);
 }
 
 .field {
@@ -346,6 +353,73 @@
   width: 2rem;
   color: var(--muted);
   font-size: var(--step-label);
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  max-height: 14rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.history__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-s);
+  justify-content: space-between;
+}
+
+.history__title {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--step-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history__title--untitled {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.history__meta {
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.history__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step-label);
+  text-align: center;
+}
+
+.history__clear {
+  margin-top: var(--space-m);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: var(--step-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.history__clear:hover {
+  color: var(--mode);
+}
+
+.history__clear:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
 }
 
 /* Short viewports, a landscape phone above all, need the stack tightened. */

@@ -85,9 +85,13 @@
 
 ## Stage 10 — 歷史記錄　`feat/session-history`
 
-- [ ] `src/models/session.model.ts`（`SessionRecord`）
-- [ ] `src/services/history-storage.ts`（第二個 localStorage key）
-- [ ] `src/ui/history-view.ts`（收合面板、Clear history）
+- [x] `src/models/session.model.ts`（`SessionRecord`、`MAX_HISTORY_RECORDS`）
+- [x] `src/services/history-storage.ts` + spec（逐筆驗證、壞的丟掉其餘保留）
+- [x] `src/services/key-value-storage.ts`（兩個 storage 共用的介面）
+- [x] `session.service.ts` 擴充歷史清單 + spec（注入 `now` / `createId`）
+- [x] `src/ui/history-view.ts` + spec（收合面板、Clear history）
+- [x] `.settings*` 樣式重構成共用的 `.panel*`，兩個面板不重複
+- [x] 修 `getSessionDurationMs()`：改記錄開始時的時長，不再即時重算
 - [ ] 驗收：完成後出現在最上方、重整後還在、存亂碼不白畫面、超過 100 筆丟最舊
 
 ## 第二階段（MVP 之後）

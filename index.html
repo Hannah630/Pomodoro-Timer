@@ -42,47 +42,65 @@
         </div>
       </section>
 
-      <details class="settings">
-        <summary class="settings__toggle">Settings</summary>
+      <div class="panels">
+        <details class="panel">
+          <summary class="panel__toggle">Settings</summary>
 
-        <div class="settings__fields">
-          <label class="field">
-            <span class="field__name">Focus</span>
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              step="1"
-              data-focus-minutes
-            />
-            <span class="field__unit">min</span>
-          </label>
+          <div class="panel__body fields">
+            <label class="field">
+              <span class="field__name">Focus</span>
+              <input
+                class="field__input"
+                type="number"
+                inputmode="numeric"
+                step="1"
+                data-focus-minutes
+              />
+              <span class="field__unit">min</span>
+            </label>
 
-          <label class="field">
-            <span class="field__name">Short break</span>
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              step="1"
-              data-short-break-minutes
-            />
-            <span class="field__unit">min</span>
-          </label>
+            <label class="field">
+              <span class="field__name">Short break</span>
+              <input
+                class="field__input"
+                type="number"
+                inputmode="numeric"
+                step="1"
+                data-short-break-minutes
+              />
+              <span class="field__unit">min</span>
+            </label>
 
-          <label class="field">
-            <span class="field__name">Long break</span>
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              step="1"
-              data-long-break-minutes
-            />
-            <span class="field__unit">min</span>
-          </label>
-        </div>
-      </details>
+            <label class="field">
+              <span class="field__name">Long break</span>
+              <input
+                class="field__input"
+                type="number"
+                inputmode="numeric"
+                step="1"
+                data-long-break-minutes
+              />
+              <span class="field__unit">min</span>
+            </label>
+          </div>
+        </details>
+
+        <details class="panel">
+          <summary class="panel__toggle">History</summary>
+
+          <div class="panel__body">
+            <ul class="history" data-history></ul>
+
+            <p class="history__empty" data-history-empty>
+              Finish a focus session and it will show up here.
+            </p>
+
+            <button class="history__clear" type="button" data-history-clear>
+              Clear history
+            </button>
+          </div>
+        </details>
+      </div>
     </main>
 
     <script type="module" src="/src/main.ts"></script>

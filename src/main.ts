@@ -2,12 +2,14 @@ import './styles/base.css';
 import './styles/layout.css';
 
 import type { TimerSettings, TimerState } from './models/timer.model';
+import { createHistoryStorage } from './services/history-storage';
 import { createNotificationService } from './services/notification.service';
 import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
 import { queryElement } from './ui/dom';
+import { createHistoryView } from './ui/history-view';
 import { MODE_LABELS } from './ui/labels';
 import { createRoundsView } from './ui/rounds-view';
 import { createSettingsView } from './ui/settings-view';
@@ -30,12 +32,19 @@ const timer = new TimerService({
   settings: restored?.settings,
   completedFocusCount: restored?.completedFocusCount,
 });
-const session = createSessionService();
+const historyStorage = createHistoryStorage(localStorage);
+const session = createSessionService({ history: historyStorage.load() });
 
 const timerView = createTimerView(app);
 const roundsView = createRoundsView(app);
 const titleView = createTitleView(app, {
   onTitleChange: (raw) => applyTitle(raw),
+});
+const historyView = createHistoryView(app, {
+  onClear: () => {
+    session.clearHistory();
+    saveHistory();
+  },
 });
 const notifications = createNotificationService();
 const controlsView = createControlsView(app, {
@@ -65,6 +74,11 @@ function applyTitle(raw: string): void {
   titleView.setValue(session.getTitle());
 }
 
+function saveHistory(): void {
+  historyStorage.save(session.getHistory());
+  historyView.render(session.getHistory());
+}
+
 /**
  * The form is rendered from what the service accepted, not from what was
  * typed, so a clamped value appears in the field straight away.
@@ -88,8 +102,14 @@ function persist(): void {
 }
 
 timer.subscribe(render);
-timer.onComplete((finished, next) => {
+timer.onComplete((finished, next, durationMs) => {
   persist();
+
+  if (finished === 'focus') {
+    session.recordCompletedFocus(durationMs);
+    saveHistory();
+  }
+
   timerView.flash();
   notifications.notify(
     `${MODE_LABELS[finished]} finished`,
@@ -99,6 +119,8 @@ timer.onComplete((finished, next) => {
 
 render(timer.getState());
 settingsView.render(timer.getSettings());
+titleView.setValue(session.getTitle());
+historyView.render(session.getHistory());
 
 // A background tab throttles the interval, so the display can be several
 // seconds stale by the time the user comes back. One tick on return recomputes
