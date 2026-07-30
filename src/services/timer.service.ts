@@ -1,9 +1,9 @@
 import {
   DEFAULT_SETTINGS,
-  MAX_SESSION_MINUTES,
+  MAX_SESSION_SECONDS,
   MIN_ROUNDS_PER_LONG_BREAK,
-  MIN_SESSION_MINUTES,
-  MS_PER_MINUTE,
+  MIN_SESSION_SECONDS,
+  MS_PER_SECOND,
   type TimerMode,
   type TimerSettings,
   type TimerState,
@@ -230,11 +230,11 @@ export class TimerService {
   private durationMsFor(mode: TimerMode): number {
     switch (mode) {
       case 'focus':
-        return this.settings.focusMinutes * MS_PER_MINUTE;
+        return this.settings.focusSeconds * MS_PER_SECOND;
       case 'shortBreak':
-        return this.settings.shortBreakMinutes * MS_PER_MINUTE;
+        return this.settings.shortBreakSeconds * MS_PER_SECOND;
       case 'longBreak':
-        return this.settings.longBreakMinutes * MS_PER_MINUTE;
+        return this.settings.longBreakSeconds * MS_PER_SECOND;
     }
   }
 
@@ -268,14 +268,14 @@ function sanitizeSettings(
   current: TimerSettings,
 ): TimerSettings {
   return {
-    focusMinutes: sanitizeMinutes(patch.focusMinutes, current.focusMinutes),
-    shortBreakMinutes: sanitizeMinutes(
-      patch.shortBreakMinutes,
-      current.shortBreakMinutes,
+    focusSeconds: sanitizeSeconds(patch.focusSeconds, current.focusSeconds),
+    shortBreakSeconds: sanitizeSeconds(
+      patch.shortBreakSeconds,
+      current.shortBreakSeconds,
     ),
-    longBreakMinutes: sanitizeMinutes(
-      patch.longBreakMinutes,
-      current.longBreakMinutes,
+    longBreakSeconds: sanitizeSeconds(
+      patch.longBreakSeconds,
+      current.longBreakSeconds,
     ),
     roundsPerLongBreak: sanitizeRounds(
       patch.roundsPerLongBreak,
@@ -284,12 +284,12 @@ function sanitizeSettings(
   };
 }
 
-function sanitizeMinutes(value: number | undefined, fallback: number): number {
+function sanitizeSeconds(value: number | undefined, fallback: number): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return fallback;
   }
 
-  return clamp(Math.round(value), MIN_SESSION_MINUTES, MAX_SESSION_MINUTES);
+  return clamp(Math.round(value), MIN_SESSION_SECONDS, MAX_SESSION_SECONDS);
 }
 
 function sanitizeRounds(value: number | undefined, fallback: number): number {

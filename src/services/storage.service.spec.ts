@@ -25,7 +25,7 @@ function createFakeStorage(stored?: string): KeyValueStorage {
 function storedPayload(overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
     version: STORAGE_VERSION,
-    settings: { focusMinutes: 30 },
+    settings: { focusSeconds: 1800 },
     completedFocusCount: 3,
     ...overrides,
   });
@@ -43,10 +43,10 @@ describe('storage service', () => {
       const storage = createFakeStorage();
       const service = createStorageService(storage);
 
-      service.save({ settings: { focusMinutes: 30 }, completedFocusCount: 3 });
+      service.save({ settings: { focusSeconds: 1800 }, completedFocusCount: 3 });
 
       expect(service.load()).toEqual({
-        settings: { focusMinutes: 30 },
+        settings: { focusSeconds: 1800 },
         completedFocusCount: 3,
       });
     });
@@ -57,12 +57,65 @@ describe('storage service', () => {
       expect(service.load()).toBeNull();
     });
 
-    it('ignores a save from a different version', () => {
+    it('ignores a save from a version it does not know', () => {
       const service = createStorageService(
         createFakeStorage(storedPayload({ version: 99 })),
       );
 
       expect(service.load()).toBeNull();
+    });
+  });
+
+  describe('upgrading a version 1 save', () => {
+    function v1Payload(settings: unknown, completedFocusCount: unknown = 3) {
+      return JSON.stringify({ version: 1, settings, completedFocusCount });
+    }
+
+    it('converts the durations from minutes to seconds', () => {
+      const service = createStorageService(
+        createFakeStorage(
+          v1Payload({
+            focusMinutes: 30,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 20,
+            roundsPerLongBreak: 4,
+          }),
+        ),
+      );
+
+      expect(service.load()).toEqual({
+        settings: {
+          focusSeconds: 1800,
+          shortBreakSeconds: 300,
+          longBreakSeconds: 1200,
+          roundsPerLongBreak: 4,
+        },
+        completedFocusCount: 3,
+      });
+    });
+
+    it('keeps the session count across the upgrade', () => {
+      const service = createStorageService(
+        createFakeStorage(v1Payload({ focusMinutes: 30 }, 12)),
+      );
+
+      expect(service.load()?.completedFocusCount).toBe(12);
+    });
+
+    it('leaves out fields it cannot convert, rather than guessing', () => {
+      const service = createStorageService(
+        createFakeStorage(
+          v1Payload({ focusMinutes: 30, shortBreakMinutes: 'abc' }),
+        ),
+      );
+
+      expect(service.load()?.settings).toEqual({ focusSeconds: 1800 });
+    });
+
+    it('upgrades an empty settings object to an empty one', () => {
+      const service = createStorageService(createFakeStorage(v1Payload({})));
+
+      expect(service.load()?.settings).toEqual({});
     });
 
     it('ignores a save that is not an object', () => {
@@ -81,10 +134,10 @@ describe('storage service', () => {
 
     it('passes malformed settings through for the timer service to reject', () => {
       const service = createStorageService(
-        createFakeStorage(storedPayload({ settings: { focusMinutes: 'abc' } })),
+        createFakeStorage(storedPayload({ settings: { focusSeconds: 'abc' } })),
       );
 
-      expect(service.load()?.settings).toEqual({ focusMinutes: 'abc' });
+      expect(service.load()?.settings).toEqual({ focusSeconds: 'abc' });
     });
 
     it('repairs a completed count that is missing or nonsensical', () => {

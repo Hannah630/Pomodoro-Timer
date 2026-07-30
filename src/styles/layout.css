@@ -306,10 +306,21 @@
   outline-offset: 1px;
 }
 
-.field__unit {
-  width: 2rem;
+/* Column headings, so the two boxes on each row need no label of their own. */
+.fields__head {
+  display: flex;
+  gap: var(--space-s);
+  justify-content: flex-end;
+  margin: 0;
   color: var(--muted);
   font-size: var(--step-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fields__unit {
+  width: 4.5rem;
+  text-align: center;
 }
 
 /**

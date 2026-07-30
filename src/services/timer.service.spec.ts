@@ -2,15 +2,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   DEFAULT_SETTINGS,
-  MAX_SESSION_MINUTES,
-  MIN_SESSION_MINUTES,
-  MS_PER_MINUTE,
+  MAX_SESSION_SECONDS,
+  MIN_SESSION_SECONDS,
+  MS_PER_SECOND,
+  SECONDS_PER_MINUTE,
 } from '../models/timer.model';
 import { TimerService, type TimerServiceOptions } from './timer.service';
 
-const FOCUS_MS = DEFAULT_SETTINGS.focusMinutes * MS_PER_MINUTE;
-const SHORT_BREAK_MS = DEFAULT_SETTINGS.shortBreakMinutes * MS_PER_MINUTE;
-const LONG_BREAK_MS = DEFAULT_SETTINGS.longBreakMinutes * MS_PER_MINUTE;
+const FOCUS_MS = DEFAULT_SETTINGS.focusSeconds * MS_PER_SECOND;
+const SHORT_BREAK_MS = DEFAULT_SETTINGS.shortBreakSeconds * MS_PER_SECOND;
+const LONG_BREAK_MS = DEFAULT_SETTINGS.longBreakSeconds * MS_PER_SECOND;
 
 const createdTimers: TimerService[] = [];
 
@@ -77,9 +78,9 @@ describe('TimerService', () => {
     it('follows a settings change made while idle', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ focusMinutes: 10 });
+      service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
 
-      expect(service.getSessionDurationMs()).toBe(10 * MS_PER_MINUTE);
+      expect(service.getSessionDurationMs()).toBe(10 * SECONDS_PER_MINUTE * MS_PER_SECOND);
     });
 
     it('holds still when the settings change mid-session', () => {
@@ -87,7 +88,7 @@ describe('TimerService', () => {
 
       service.start();
       advance(60_000);
-      service.updateSettings({ focusMinutes: 10 });
+      service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
       service.tick();
 
       // The running session keeps the length it began with, so the share of it
@@ -261,9 +262,9 @@ describe('TimerService', () => {
     it('applies a new duration immediately while idle', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ focusMinutes: 10 });
+      service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
 
-      expect(service.getState().remainingMs).toBe(10 * MS_PER_MINUTE);
+      expect(service.getState().remainingMs).toBe(10 * SECONDS_PER_MINUTE * MS_PER_SECOND);
     });
 
     it('does not disturb a session that is already running', () => {
@@ -271,7 +272,7 @@ describe('TimerService', () => {
 
       service.start();
       advance(1_000);
-      service.updateSettings({ focusMinutes: 10 });
+      service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
       service.tick();
 
       expect(service.getState().remainingMs).toBe(FOCUS_MS - 1_000);
@@ -280,10 +281,10 @@ describe('TimerService', () => {
     it('uses the new duration for the next session of that mode', () => {
       const { service, advance } = createTimer();
 
-      service.updateSettings({ shortBreakMinutes: 3 });
+      service.updateSettings({ shortBreakSeconds: 3 * SECONDS_PER_MINUTE });
       runToCompletion(service, advance);
 
-      expect(service.getState().remainingMs).toBe(3 * MS_PER_MINUTE);
+      expect(service.getState().remainingMs).toBe(3 * SECONDS_PER_MINUTE * MS_PER_SECOND);
     });
   });
 
@@ -291,46 +292,46 @@ describe('TimerService', () => {
     it('clamps a duration below the minimum', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ focusMinutes: 0 });
+      service.updateSettings({ focusSeconds: 0 });
 
-      expect(service.getSettings().focusMinutes).toBe(MIN_SESSION_MINUTES);
+      expect(service.getSettings().focusSeconds).toBe(MIN_SESSION_SECONDS);
     });
 
     it('clamps a negative duration', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ shortBreakMinutes: -5 });
+      service.updateSettings({ shortBreakSeconds: -5 });
 
-      expect(service.getSettings().shortBreakMinutes).toBe(MIN_SESSION_MINUTES);
+      expect(service.getSettings().shortBreakSeconds).toBe(MIN_SESSION_SECONDS);
     });
 
     it('clamps a duration above the maximum', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ longBreakMinutes: 999 });
+      service.updateSettings({ longBreakSeconds: 999_999 });
 
-      expect(service.getSettings().longBreakMinutes).toBe(MAX_SESSION_MINUTES);
+      expect(service.getSettings().longBreakSeconds).toBe(MAX_SESSION_SECONDS);
     });
 
-    it('rounds a fractional duration to whole minutes', () => {
+    it('rounds a fractional duration to whole seconds', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ focusMinutes: 12.6 });
+      service.updateSettings({ focusSeconds: 12.6 });
 
-      expect(service.getSettings().focusMinutes).toBe(13);
+      expect(service.getSettings().focusSeconds).toBe(13);
     });
 
     it('keeps the current value when handed something that is not a number', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ focusMinutes: Number.NaN });
+      service.updateSettings({ focusSeconds: Number.NaN });
       service.updateSettings({
-        shortBreakMinutes: 'abc' as unknown as number,
+        shortBreakSeconds: 'abc' as unknown as number,
       });
 
       expect(service.getSettings()).toMatchObject({
-        focusMinutes: DEFAULT_SETTINGS.focusMinutes,
-        shortBreakMinutes: DEFAULT_SETTINGS.shortBreakMinutes,
+        focusSeconds: DEFAULT_SETTINGS.focusSeconds,
+        shortBreakSeconds: DEFAULT_SETTINGS.shortBreakSeconds,
       });
     });
 
@@ -344,12 +345,12 @@ describe('TimerService', () => {
 
     it('validates settings supplied at construction, not just through the form', () => {
       const { service } = createTimer({
-        settings: { focusMinutes: 999, shortBreakMinutes: Number.NaN },
+        settings: { focusSeconds: 999_999, shortBreakSeconds: Number.NaN },
       });
 
       expect(service.getSettings()).toMatchObject({
-        focusMinutes: MAX_SESSION_MINUTES,
-        shortBreakMinutes: DEFAULT_SETTINGS.shortBreakMinutes,
+        focusSeconds: MAX_SESSION_SECONDS,
+        shortBreakSeconds: DEFAULT_SETTINGS.shortBreakSeconds,
       });
     });
   });
@@ -401,7 +402,7 @@ describe('TimerService', () => {
 
       service.onComplete(listener);
       service.start();
-      service.updateSettings({ focusMinutes: 10 });
+      service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
       advance(FOCUS_MS);
       service.tick();
 

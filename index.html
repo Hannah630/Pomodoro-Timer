@@ -80,6 +80,11 @@
       <h2 class="drawer__title">Settings</h2>
 
       <div class="fields">
+        <p class="fields__head" aria-hidden="true">
+          <span class="fields__unit">min</span>
+          <span class="fields__unit">sec</span>
+        </p>
+
         <label class="field">
           <span class="field__name">Focus</span>
           <input
@@ -87,9 +92,20 @@
             type="number"
             inputmode="numeric"
             step="1"
+            min="0"
+            aria-label="Focus minutes"
             data-focus-minutes
           />
-          <span class="field__unit">min</span>
+          <input
+            class="field__input"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            min="0"
+            max="59"
+            aria-label="Focus seconds"
+            data-focus-seconds
+          />
         </label>
 
         <label class="field">
@@ -99,9 +115,20 @@
             type="number"
             inputmode="numeric"
             step="1"
+            min="0"
+            aria-label="Short break minutes"
             data-short-break-minutes
           />
-          <span class="field__unit">min</span>
+          <input
+            class="field__input"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            min="0"
+            max="59"
+            aria-label="Short break seconds"
+            data-short-break-seconds
+          />
         </label>
 
         <label class="field">
@@ -111,9 +138,20 @@
             type="number"
             inputmode="numeric"
             step="1"
+            min="0"
+            aria-label="Long break minutes"
             data-long-break-minutes
           />
-          <span class="field__unit">min</span>
+          <input
+            class="field__input"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            min="0"
+            max="59"
+            aria-label="Long break seconds"
+            data-long-break-seconds
+          />
         </label>
       </div>
     </aside>
