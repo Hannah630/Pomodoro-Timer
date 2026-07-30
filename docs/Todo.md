@@ -148,6 +148,16 @@
 - [x] 抽屜加 All time 一行，日期標題加當日小計
 - [ ] 驗收：完成幾輪後 All time 正確；清空歷史後 All time 仍在
 
+## Stage 17 — 轉場說明與百分秒　`feat/transition-clarity`
+
+- [x] 主按鈕改成 `Start short break` / `Start long break`（`formatPrimaryAction`）
+- [x] 休息時也顯示週期位置，break 以它跟隨的那一輪編號
+- [x] 專注中預告 `Next: long break`，規則來自 `TimerService.getNextMode()`
+- [x] 時間顯示 `mm:ss·cs`，百分秒做成小字後綴、獨立元素高頻更新
+- [x] `formatCountdown()` 一次進位算出兩段，避免 24:59 顯示成 `25:00 · 50`
+- [x] tick 250ms → 16ms，`--transition-fill` 240ms → 120ms
+- [ ] 驗收：百分秒流暢、大字不抖、按鈕文字正確、手機不爆版
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑

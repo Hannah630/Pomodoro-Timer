@@ -80,11 +80,11 @@ drawers.add({
 });
 
 function render(state: TimerState): void {
-  timerView.render(
-    state,
-    timer.getSessionDurationMs(),
-    timer.getSettings().roundsPerLongBreak,
-  );
+  timerView.render(state, {
+    sessionDurationMs: timer.getSessionDurationMs(),
+    roundsPerLongBreak: timer.getSettings().roundsPerLongBreak,
+    nextMode: timer.getNextMode(),
+  });
   titleView.render(state.mode);
   controlsView.render(state);
 }
