@@ -1,13 +1,11 @@
 import type { TimerMode, TimerState } from '../models/timer.model';
 import { formatCountdown } from '../utils/format';
 import { queryElement } from './dom';
-import { formatModeLabel, formatNextHint } from './labels';
 
 /** Each mode points the shared --mode token at its own accent. */
 const MODE_ACCENTS: Record<TimerMode, string> = {
   focus: 'var(--mode-focus)',
-  shortBreak: 'var(--mode-short-break)',
-  longBreak: 'var(--mode-long-break)',
+  break: 'var(--mode-break)',
 };
 
 /** Must match the alert-wash animation in layout.css. */
@@ -15,8 +13,8 @@ const ALERT_DURATION_MS = 900;
 
 export interface TimerViewContext {
   readonly sessionDurationMs: number;
-  readonly roundsPerLongBreak: number;
-  readonly nextMode: TimerMode;
+  /** Set when the session was paused because the user switched away. */
+  readonly pausedByLeaving: boolean;
 }
 
 export interface TimerView {
@@ -34,10 +32,9 @@ export interface TimerView {
  * Contains no rules about time; it only displays what it is given.
  */
 export function createTimerView(root: ParentNode): TimerView {
-  const modeElement = queryElement(root, '[data-mode]');
   const clockElement = queryElement(root, '[data-clock]');
   const centisecondsElement = queryElement(root, '[data-centiseconds]');
-  const nextElement = queryElement(root, '[data-next]');
+  const hintElement = queryElement(root, '[data-hint]');
   const documentRoot = document.documentElement;
   const theme = documentRoot.style;
 
@@ -69,18 +66,7 @@ export function createTimerView(root: ParentNode): TimerView {
         clockElement.textContent = countdown.clock;
       }
 
-      const mode = formatModeLabel(state, context.roundsPerLongBreak);
-      if (modeElement.textContent !== mode) {
-        modeElement.textContent = mode;
-      }
-
-      // Only a focus session leads somewhere worth announcing; a break always
-      // leads back to focus.
-      nextElement.hidden = state.mode !== 'focus';
-      const hint = formatNextHint(context.nextMode);
-      if (nextElement.textContent !== hint) {
-        nextElement.textContent = hint;
-      }
+      hintElement.hidden = !context.pausedByLeaving;
 
       theme.setProperty('--mode', MODE_ACCENTS[state.mode]);
       theme.setProperty(

@@ -5,10 +5,7 @@ import {
 } from '../models/timer.model';
 import { queryElement } from './dom';
 
-type DurationKey = Extract<
-  keyof TimerSettings,
-  'focusSeconds' | 'shortBreakSeconds' | 'longBreakSeconds'
->;
+type DurationKey = keyof TimerSettings;
 
 /** TimerSettings is read-only, so build the patch in a writable shape. */
 type DurationPatch = { -readonly [K in DurationKey]?: number };
@@ -24,14 +21,9 @@ const DURATION_FIELDS: ReadonlyArray<{
     key: 'focusSeconds',
   },
   {
-    minutes: '[data-short-break-minutes]',
-    seconds: '[data-short-break-seconds]',
-    key: 'shortBreakSeconds',
-  },
-  {
-    minutes: '[data-long-break-minutes]',
-    seconds: '[data-long-break-seconds]',
-    key: 'longBreakSeconds',
+    minutes: '[data-break-minutes]',
+    seconds: '[data-break-seconds]',
+    key: 'breakSeconds',
   },
 ];
 

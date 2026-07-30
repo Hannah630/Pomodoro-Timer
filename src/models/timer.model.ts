@@ -5,8 +5,15 @@
  * Everything else in the app may depend on it, but it depends on nothing.
  */
 
-/** Which kind of session the timer is currently counting down. */
-export type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
+/**
+ * Which kind of session the timer is counting down.
+ *
+ * There is one kind of break. The long break every fourth session is the
+ * classic shape of the technique, but it was carrying a cycle length, a
+ * second set of durations and a numbering scheme for a distinction nobody
+ * here was making. Alternating is the whole rule now.
+ */
+export type TimerMode = 'focus' | 'break';
 
 /**
  * Whether the countdown is running.
@@ -25,10 +32,7 @@ export type TimerStatus = 'idle' | 'running' | 'paused';
  */
 export interface TimerSettings {
   readonly focusSeconds: number;
-  readonly shortBreakSeconds: number;
-  readonly longBreakSeconds: number;
-  /** How many focus sessions to finish before taking a long break. */
-  readonly roundsPerLongBreak: number;
+  readonly breakSeconds: number;
 }
 
 /** A read-only snapshot of the timer, handed out to subscribers. */
@@ -48,12 +52,7 @@ export const MS_PER_MINUTE = MS_PER_SECOND * SECONDS_PER_MINUTE;
 export const MIN_SESSION_SECONDS = 5;
 export const MAX_SESSION_SECONDS = 120 * SECONDS_PER_MINUTE;
 
-/** A cycle of zero rounds has no meaning and would divide by zero. */
-export const MIN_ROUNDS_PER_LONG_BREAK = 1;
-
 export const DEFAULT_SETTINGS: TimerSettings = {
   focusSeconds: 25 * SECONDS_PER_MINUTE,
-  shortBreakSeconds: 5 * SECONDS_PER_MINUTE,
-  longBreakSeconds: 15 * SECONDS_PER_MINUTE,
-  roundsPerLongBreak: 4,
+  breakSeconds: 5 * SECONDS_PER_MINUTE,
 };

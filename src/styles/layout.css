@@ -156,12 +156,54 @@
   transform: translateX(-50%);
 }
 
-.session__mode {
-  margin: 0;
-  color: var(--mode);
+/**
+ * The mode switcher is also the label for the current mode: a heading reading
+ * "Focus" beside a control for choosing Focus would be the same word twice.
+ */
+.modes {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.mode {
+  min-height: 36px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease,
+    color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mode:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.mode--active {
+  border-color: var(--mode);
+  background: var(--mode);
+  color: var(--ink);
+}
+
+.mode:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.session__today {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
 }
 
@@ -237,9 +279,9 @@
   margin: 0 0.15em;
 }
 
-.session__next {
+.session__hint {
   margin: 0;
-  color: var(--muted);
+  color: var(--mode);
   font-size: var(--step-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;

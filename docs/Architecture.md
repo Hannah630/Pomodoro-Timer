@@ -36,30 +36,36 @@ ui  →  services  →  models
 ## 模式切換規則
 
 ```
-focus 結束 → completedFocusCount + 1        ← 先累加
-           → (completedFocusCount % roundsPerLongBreak === 0) ? longBreak : shortBreak
-break 結束 → focus                          ← 休息不計入次數
+focus 結束 → completedFocusCount + 1   ← 休息不計入次數
+           → break
+break 結束 → focus
 ```
 
-**先累加再判斷**，所以「剛好整除」等於「剛完成第 4 的倍數輪」。預設 4 輪一循環時：
+**只有一種休息。** 「每 4 輪進長休息」是番茄工作法的經典形狀，但它為了一個實際上
+沒有人在區分的差異，撐起了一個週期長度、第二組時長、以及一套編號規則。現在整條
+規則就是「交替」。
 
-| 完成第幾輪 | 累計 | `% 4` | 下一個 |
-| --- | --- | --- | --- |
-| 1 / 2 / 3 | 1 / 2 / 3 | 1 / 2 / 3 | Short break |
-| 4 | 4 | 0 | **Long break** |
-| 5 | 5 | 1 | Short break |
+切換後 `status` 回到 `idle`，等使用者按 Start（不自動開始）。因為不自動開始，
+**主按鈕必須說出它要開始什麼**（`Start break` 而不只是 `Start`），否則使用者只看到
+顏色變了卻沒在倒數。
 
-切換後 `status` 回到 `idle`，等使用者按 Start（不自動開始）。
+模式也可以隨時手動切換（`selectMode()`）：切到另一個模式會停下並重設成該模式的完整
+時長；**切到當前模式則什麼都不做**，這樣誤點不會毀掉正在跑的一段。想重新開始當前
+模式是 Reset 的工作。
 
-因為不自動開始，**這個轉場必須自己說清楚**，否則使用者只看到顏色變了卻沒在倒數：
+## 專注鎖定
 
-| 訊號 | 內容 |
+網頁**沒有辦法**阻止使用者切到其他 app，而且不會有——能鎖住你機器的網頁就是勒索
+軟體。所以這裡做的是兩件做得到的事：
+
+| 機制 | 作用 |
 | --- | --- |
-| 主按鈕 | `Start short break` / `Start long break`，而不只是 `Start` |
-| 模式標籤 | 休息時也顯示週期位置（`Short break · 3/4`），focus 以自己編號、break 以它跟隨的那一輪編號 |
-| 專注中的預告 | `Next: long break`，由 `TimerService.getNextMode()` 提供 |
+| Fullscreen | 按 Start 開始專注時進入全螢幕，清掉分頁列與書籤。必須源自使用者手勢，所以綁在點擊上；離開不需要手勢 |
+| 離開就暫停 | 切走時自動暫停，**離開的時間不計入這一輪**。擋不住人離開，但可以拒絕假裝他留下 |
 
-`getNextMode()` 走的是同一套規則（`breakAfterFocus`），只是套用在「這一輪結束後」的次數上——**規則沒有在 UI 層被複寫第二遍**。
+偵測用兩個事件：`visibilitychange` 抓分頁被隱藏，`window.blur` 抓「切到同一螢幕的
+另一個視窗」——後者分頁其實仍然可見，只有 blur 會報。代價是打開 DevTools 或點網址列
+也會觸發。
 
 ## 樣式系統
 

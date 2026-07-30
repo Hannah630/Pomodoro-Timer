@@ -9,11 +9,14 @@ export const STORAGE_KEY = 'pomodoro-timer';
 /**
  * Bump when the saved shape changes.
  *
- * Version 1 stored durations as whole minutes; version 2 stores seconds.
- * Upgrading in place matters here: dropping the save instead would silently
- * reset durations the user had chosen.
+ * 1: durations in whole minutes, with a separate long break and a cycle length
+ * 2: durations in seconds, otherwise unchanged
+ * 3: one break, so the long break and the cycle length are gone
+ *
+ * Upgrading in place rather than discarding: a save that is merely old is not
+ * a corrupt one, and dropping it would silently reset durations people chose.
  */
-export const STORAGE_VERSION = 2;
+export const STORAGE_VERSION = 3;
 
 export interface PersistedState {
   readonly settings: Partial<TimerSettings>;
@@ -55,26 +58,19 @@ export function createStorageService(
       const settings = parsed['settings'];
       const savedSettings = isRecord(settings) ? settings : {};
 
-      switch (parsed['version']) {
-        case STORAGE_VERSION:
-          return {
-            settings: savedSettings as Partial<TimerSettings>,
-            completedFocusCount: readCount(parsed['completedFocusCount']),
-            totalFocusMs: readCount(parsed['totalFocusMs']),
-          };
+      const settingsFor = upgradeSettings(parsed['version'], savedSettings);
 
-        case 1:
-          return {
-            settings: upgradeMinutesToSeconds(savedSettings),
-            completedFocusCount: readCount(parsed['completedFocusCount']),
-            // Version 1 did not track this; starting from zero is the only
-            // honest answer.
-            totalFocusMs: 0,
-          };
-
-        default:
-          return null;
+      if (settingsFor === null) {
+        return null;
       }
+
+      return {
+        settings: settingsFor,
+        completedFocusCount: readCount(parsed['completedFocusCount']),
+        // Only ever written by version 3; older saves start it from zero,
+        // which is the one honest answer available.
+        totalFocusMs: readCount(parsed['totalFocusMs']),
+      };
     },
 
     save(state) {
@@ -90,30 +86,50 @@ export function createStorageService(
   };
 }
 
-type DurationKey = Extract<
-  keyof TimerSettings,
-  'focusSeconds' | 'shortBreakSeconds' | 'longBreakSeconds'
->;
-
-const V1_DURATION_FIELDS: ReadonlyArray<{ from: string; to: DurationKey }> = [
+const V1_TO_V2_FIELDS: ReadonlyArray<{ from: string; to: string }> = [
   { from: 'focusMinutes', to: 'focusSeconds' },
   { from: 'shortBreakMinutes', to: 'shortBreakSeconds' },
   { from: 'longBreakMinutes', to: 'longBreakSeconds' },
 ];
 
 /**
- * Carries a version 1 save forward.
+ * Brings saved settings up to the current shape, one version at a time.
+ *
+ * Chaining the steps rather than writing a direct path per version means the
+ * next bump only has to describe the difference it introduces, instead of
+ * every route into it.
+ *
+ * Returns null for a version this build has never heard of.
+ */
+function upgradeSettings(
+  version: unknown,
+  saved: Record<string, unknown>,
+): Partial<TimerSettings> | null {
+  switch (version) {
+    case STORAGE_VERSION:
+      return saved as Partial<TimerSettings>;
+    case 2:
+      return dropTheLongBreak(saved);
+    case 1:
+      return dropTheLongBreak(minutesToSeconds(saved));
+    default:
+      return null;
+  }
+}
+
+/**
+ * Version 1 to 2.
  *
  * Only fields that are actually numbers are converted; anything else is left
  * out, and the timer service then falls back to its default for it, exactly
  * as it does for a malformed current save.
  */
-function upgradeMinutesToSeconds(
+function minutesToSeconds(
   saved: Record<string, unknown>,
-): Partial<TimerSettings> {
-  const upgraded: { -readonly [K in keyof TimerSettings]?: number } = {};
+): Record<string, unknown> {
+  const upgraded: Record<string, unknown> = {};
 
-  V1_DURATION_FIELDS.forEach(({ from, to }) => {
+  V1_TO_V2_FIELDS.forEach(({ from, to }) => {
     const minutes = saved[from];
 
     if (typeof minutes === 'number' && Number.isFinite(minutes)) {
@@ -121,12 +137,34 @@ function upgradeMinutesToSeconds(
     }
   });
 
-  const rounds = saved['roundsPerLongBreak'];
-  if (typeof rounds === 'number' && Number.isFinite(rounds)) {
-    upgraded.roundsPerLongBreak = rounds;
+  return upgraded;
+}
+
+/**
+ * Version 2 to 3.
+ *
+ * The short break becomes the only break. The long break and the cycle length
+ * are dropped rather than merged: there is nowhere left to put them, and the
+ * short break is the one that was actually being used.
+ */
+function dropTheLongBreak(
+  saved: Record<string, unknown>,
+): Partial<TimerSettings> {
+  const upgraded: { -readonly [K in keyof TimerSettings]?: number } = {};
+
+  if (isFiniteNumber(saved['focusSeconds'])) {
+    upgraded.focusSeconds = saved['focusSeconds'];
+  }
+
+  if (isFiniteNumber(saved['shortBreakSeconds'])) {
+    upgraded.breakSeconds = saved['shortBreakSeconds'];
   }
 
   return upgraded;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
 function parseJson(raw: string): unknown {

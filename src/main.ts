@@ -10,8 +10,15 @@ import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
 import { queryElement } from './ui/dom';
 import { createDrawerGroup } from './ui/drawer';
+import {
+  enterFullscreen,
+  exitFullscreen,
+  watchForLeaving,
+} from './ui/focus-guard';
 import { createHistoryView } from './ui/history-view';
+import { summarizeToday } from './ui/history-format';
 import { MODE_LABELS } from './ui/labels';
+import { createModesView } from './ui/modes-view';
 import { createSettingsView } from './ui/settings-view';
 import { createTimerView } from './ui/timer-view';
 import { createTitleView } from './ui/title-view';
@@ -19,7 +26,7 @@ import { createTitleView } from './ui/title-view';
 /**
  * Application entry point.
  *
- * This layer only wires things together: it creates the service, mounts the
+ * This layer only wires things together: it creates the services, mounts the
  * views and forwards state changes between them. Business rules live in
  * src/services, never here.
  */
@@ -38,7 +45,19 @@ const session = createSessionService({
   totalFocusMs: restored?.totalFocusMs,
 });
 
+/**
+ * Set when a focus session was paused because the user switched away, and
+ * cleared the moment they take an action of their own.
+ */
+let pausedByLeaving = false;
+
 const timerView = createTimerView(app);
+const modesView = createModesView(app, {
+  onSelect: (mode) => {
+    pausedByLeaving = false;
+    timer.selectMode(mode);
+  },
+});
 const titleView = createTitleView(app, {
   onTitleChange: (raw) => applyTitle(raw),
 });
@@ -53,12 +72,23 @@ const notifications = createNotificationService();
 const controlsView = createControlsView(app, {
   onStart: () => {
     // Audio and notification permission both have to originate from a user
-    // gesture, and this click is the first one the app is guaranteed to get.
+    // gesture, and so does fullscreen. This click is the first one the app is
+    // guaranteed to get.
     notifications.enable();
+    pausedByLeaving = false;
+
+    if (timer.getState().mode === 'focus') {
+      enterFullscreen();
+    }
+
     timer.start();
   },
   onPause: () => timer.pause(),
-  onReset: () => timer.reset(),
+  onReset: () => {
+    pausedByLeaving = false;
+    exitFullscreen();
+    timer.reset();
+  },
 });
 const settingsView = createSettingsView(document, {
   onChange: (patch) => applySettings(patch),
@@ -82,9 +112,9 @@ drawers.add({
 function render(state: TimerState): void {
   timerView.render(state, {
     sessionDurationMs: timer.getSessionDurationMs(),
-    roundsPerLongBreak: timer.getSettings().roundsPerLongBreak,
-    nextMode: timer.getNextMode(),
+    pausedByLeaving,
   });
+  modesView.render(state);
   titleView.render(state.mode);
   controlsView.render(state);
 }
@@ -105,6 +135,12 @@ function renderHistory(): void {
     sessions: timer.getState().completedFocusCount,
     focusMs: session.getTotalFocusMs(),
   });
+
+  // Derived from the list, so it only needs recomputing when the list moves,
+  // never on a tick.
+  modesView.setTodayCount(
+    summarizeToday(session.getHistory(), Date.now()).sessions,
+  );
 }
 
 /**
@@ -118,7 +154,7 @@ function applySettings(patch: Partial<TimerSettings>): void {
 }
 
 /**
- * Saving on every state change would write four times a second. The two
+ * Saving on every state change would write sixty times a second. The
  * persisted values only move when a session finishes or the settings change,
  * so those are the only moments worth writing.
  */
@@ -137,6 +173,7 @@ timer.onComplete((finished, next, durationMs) => {
   if (finished === 'focus') {
     session.recordCompletedFocus(durationMs);
     saveHistory();
+    exitFullscreen();
   }
 
   persist();
@@ -145,6 +182,23 @@ timer.onComplete((finished, next, durationMs) => {
     `${MODE_LABELS[finished]} finished`,
     `Up next: ${MODE_LABELS[next].toLowerCase()}`,
   );
+});
+
+/**
+ * Time spent in another window is not focus, so the timer refuses to count it.
+ * The page cannot stop anyone leaving; it can decline to pretend they stayed.
+ */
+watchForLeaving(() => {
+  const state = timer.getState();
+
+  if (state.mode !== 'focus' || state.status !== 'running') {
+    return;
+  }
+
+  // Set before pausing, since pausing is what triggers the re-render that
+  // shows the reason.
+  pausedByLeaving = true;
+  timer.pause();
 });
 
 render(timer.getState());

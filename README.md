@@ -10,9 +10,9 @@ Author: Hannah
 
 ## What it does
 
-- Focus, short break and long break sessions, 25 / 5 / 15 minutes by default
+- Focus and break sessions, 25 and 5 minutes by default, switchable by hand
 - Start, pause, resume and reset
-- Counts finished focus sessions, and takes a long break after every fourth
+- Goes fullscreen while focusing, and pauses itself if you switch away
 - An analog dial: one revolution is the session, the hand tracks what is left
 - Chimes, washes the screen and raises a desktop notification when time is up
 - Name what you are working on, and read back the last 100 finished sessions
