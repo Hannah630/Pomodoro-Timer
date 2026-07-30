@@ -29,7 +29,12 @@
     sans-serif;
 
   --step-label: 0.75rem;
-  --step-clock: clamp(4.5rem, 23vw, 13rem);
+
+  /**
+   * Sized against whichever viewport dimension is tighter, so a landscape
+   * phone does not get a clock too tall for the screen it sits on.
+   */
+  --step-clock: clamp(3.5rem, min(23vw, 26vh), 13rem);
 
   --space-xs: 0.5rem;
   --space-s: 0.75rem;

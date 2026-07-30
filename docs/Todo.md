@@ -61,8 +61,12 @@
 
 ## Stage 7 — RWD 與收尾　`feat/responsive-polish`
 
-- [ ] `src/styles/layout.css`、色彩隨模式變化
+- [x] 色彩隨模式變化（Stage 2 的 `--mode` token 就已完成）
+- [x] 倒數字級改用 `min(23vw, 26vh)`，橫向手機不會被字撐爆
+- [x] 手機點擊不出現藍色 highlight、`theme-color` 對齊底色
+- [x] README 補上功能、架構與使用說明
 - [ ] 驗收：375px 與 1440px 皆正常；`npm run build` 成功；打上 `v0.1` tag
+- [ ] README 截圖（我沒有瀏覽器工具，需要你自己截）
 
 ## 第二階段（MVP 之後）
 
