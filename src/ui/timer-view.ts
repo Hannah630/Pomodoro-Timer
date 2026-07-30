@@ -1,12 +1,7 @@
 import type { TimerMode, TimerState } from '../models/timer.model';
 import { formatTime } from '../utils/format';
 import { queryElement } from './dom';
-
-const MODE_LABELS: Record<TimerMode, string> = {
-  focus: 'Focus',
-  shortBreak: 'Short break',
-  longBreak: 'Long break',
-};
+import { MODE_LABELS } from './labels';
 
 /** Each mode points the shared --mode token at its own accent. */
 const MODE_ACCENTS: Record<TimerMode, string> = {
@@ -15,8 +10,17 @@ const MODE_ACCENTS: Record<TimerMode, string> = {
   longBreak: 'var(--mode-long-break)',
 };
 
+/** Must match the alert-wash animation in layout.css. */
+const ALERT_DURATION_MS = 900;
+
 export interface TimerView {
   render(state: TimerState, sessionDurationMs: number): void;
+
+  /**
+   * A one-off wash of colour when a session ends. Always shown, so the app
+   * still says something when notifications are blocked or muted.
+   */
+  flash(): void;
 }
 
 /**
@@ -26,9 +30,26 @@ export interface TimerView {
 export function createTimerView(root: ParentNode): TimerView {
   const modeElement = queryElement(root, '[data-mode]');
   const timeElement = queryElement(root, '[data-time]');
-  const theme = document.documentElement.style;
+  const documentRoot = document.documentElement;
+  const theme = documentRoot.style;
+
+  let alertTimeout: number | undefined;
 
   return {
+    flash() {
+      window.clearTimeout(alertTimeout);
+      documentRoot.classList.remove('is-alerting');
+
+      // Reading a layout property forces a reflow, so re-adding the class
+      // restarts the animation instead of being coalesced into no change.
+      void documentRoot.offsetWidth;
+
+      documentRoot.classList.add('is-alerting');
+      alertTimeout = window.setTimeout(() => {
+        documentRoot.classList.remove('is-alerting');
+      }, ALERT_DURATION_MS);
+    },
+
     render(state, sessionDurationMs) {
       const time = formatTime(state.remainingMs);
 

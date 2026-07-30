@@ -22,6 +22,29 @@
 }
 
 /* The session sits centred in the space left over; settings stay at the foot. */
+/* A single fade of the mode colour when a session ends. */
+.level::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--mode);
+  opacity: 0;
+}
+
+:root.is-alerting .level::after {
+  animation: alert-wash 900ms ease-out;
+}
+
+@keyframes alert-wash {
+  from {
+    opacity: 0.5;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 .app {
   position: relative;
   display: grid;
