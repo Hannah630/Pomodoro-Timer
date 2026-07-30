@@ -102,6 +102,16 @@
 - [x] `--surface` / `--scrim` token，`.app` 上緣留白避開固定的 History 按鈕
 - [ ] 驗收：Task 欄位一眼看得出可以打字、抽屜開合順暢、鍵盤可完整操作
 
+## Stage 12 — 歷史記錄紙　`feat/history-record-sheet`
+
+- [x] Task 欄位移到 Start / Reset 下方，輪次圓點排在它下面
+- [x] `src/ui/history-format.ts` + spec（日期分組、今日統計、手寫英文日期格式）
+- [x] 歷史改成記錄紙：日期分組標題（sticky）、每列細橫線、右側等寬數字
+- [x] 抽屜頂部加今日統計 `N sessions · M min today`
+- [x] 拿掉 `Intl.DateTimeFormat`——它跟著瀏覽器語系跑，介面會冒出中文
+- [x] 拿掉 `window.confirm`——原生按鈕是瀏覽器語言，改成按鈕自身兩段式確認
+- [ ] 驗收：歷史分組正確、介面全英文、清除要按兩次、抽屜捲動時日期標題吸頂
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑

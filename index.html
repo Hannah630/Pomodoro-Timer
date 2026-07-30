@@ -21,17 +21,6 @@
 
     <main class="app" id="app">
       <section class="session">
-        <div class="task" data-title-field>
-          <label class="task__label" for="session-title">Task</label>
-          <input
-            class="task__input"
-            id="session-title"
-            type="text"
-            data-title
-            placeholder="What are you working on?"
-          />
-        </div>
-
         <div class="dial" aria-hidden="true">
           <span class="dial__hand"></span>
         </div>
@@ -46,6 +35,17 @@
           <button class="button button--secondary" type="button" data-reset>
             Reset
           </button>
+        </div>
+
+        <div class="task" data-title-field>
+          <label class="task__label" for="session-title">Task</label>
+          <input
+            class="task__input"
+            id="session-title"
+            type="text"
+            data-title
+            placeholder="What are you working on?"
+          />
         </div>
 
         <div class="rounds">
@@ -108,6 +108,8 @@
       inert
     >
       <h2 class="drawer__title">History</h2>
+
+      <p class="drawer__summary" data-history-summary>0 sessions · 0 min today</p>
 
       <ul class="history" data-history></ul>
 
