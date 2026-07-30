@@ -27,6 +27,48 @@
           <p class="rounds__count" data-count>0 sessions</p>
         </div>
       </section>
+
+      <details class="settings">
+        <summary class="settings__toggle">Settings</summary>
+
+        <div class="settings__fields">
+          <label class="field">
+            <span class="field__name">Focus</span>
+            <input
+              class="field__input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              data-focus-minutes
+            />
+            <span class="field__unit">min</span>
+          </label>
+
+          <label class="field">
+            <span class="field__name">Short break</span>
+            <input
+              class="field__input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              data-short-break-minutes
+            />
+            <span class="field__unit">min</span>
+          </label>
+
+          <label class="field">
+            <span class="field__name">Long break</span>
+            <input
+              class="field__input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              data-long-break-minutes
+            />
+            <span class="field__unit">min</span>
+          </label>
+        </div>
+      </details>
     </main>
 
     <script type="module" src="/src/main.ts"></script>

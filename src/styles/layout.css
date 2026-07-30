@@ -21,10 +21,13 @@
   pointer-events: none;
 }
 
+/* The session sits centred in the space left over; settings stay at the foot. */
 .app {
   position: relative;
   display: grid;
-  place-items: center;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  gap: var(--space-l);
   min-height: 100dvh;
   padding: var(--space-l) var(--space-m);
 }
@@ -33,6 +36,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  align-self: center;
   gap: var(--space-l);
   text-align: center;
 }
@@ -136,6 +140,95 @@
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
+}
+
+/**
+ * A native <details> block, so opening and closing needs no JavaScript and
+ * keyboard support comes for free.
+ */
+.settings {
+  width: 100%;
+  max-width: 22rem;
+}
+
+.settings__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-s);
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  list-style: none;
+  cursor: pointer;
+}
+
+.settings__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.settings__toggle::after {
+  content: '+';
+}
+
+.settings[open] .settings__toggle::after {
+  content: '\2212';
+}
+
+.settings__toggle:hover {
+  color: var(--text);
+}
+
+.settings__toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.settings__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-top: var(--space-s);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.field__name {
+  flex: 1;
+  color: var(--muted);
+  font-size: var(--step-label);
+  letter-spacing: 0.08em;
+}
+
+.field__input {
+  width: 4.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--step-label);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.field__input:focus-visible {
+  border-color: var(--mode);
+  outline: 2px solid var(--mode);
+  outline-offset: 1px;
+}
+
+.field__unit {
+  width: 2rem;
+  color: var(--muted);
+  font-size: var(--step-label);
 }
 
 @media (prefers-reduced-motion: reduce) {
