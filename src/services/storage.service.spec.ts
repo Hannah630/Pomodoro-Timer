@@ -194,6 +194,25 @@ describe('storage service', () => {
     });
   });
 
+  describe('when the browser blocks storage outright', () => {
+    const blocked: KeyValueStorage = {
+      getItem: () => {
+        throw new Error('SecurityError');
+      },
+      setItem: () => {
+        throw new Error('SecurityError');
+      },
+    };
+
+    // Private browsing and blocked cookies make even reading throw. This runs
+    // while the modules are still loading, so an unguarded read would take the
+    // whole app down before a single button was wired up.
+    it('starts fresh rather than throwing on read', () => {
+      expect(() => createStorageService(blocked).load()).not.toThrow();
+      expect(createStorageService(blocked).load()).toBeNull();
+    });
+  });
+
   describe('save', () => {
     it('does not throw when storage refuses the write', () => {
       const service = createStorageService({

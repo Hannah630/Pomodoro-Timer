@@ -23,22 +23,41 @@ export function watchForLeaving(onLeave: () => void): void {
     }
   });
 
-  window.addEventListener('blur', onLeave);
+  // Only where there is a real pointer. On a phone, blur fires for the address
+  // bar collapsing, the keyboard opening and the switch into fullscreen, none
+  // of which mean the user left — and leaving for another app there raises
+  // visibilitychange anyway, so blur adds nothing but false alarms.
+  if (window.matchMedia('(pointer: fine)').matches) {
+    window.addEventListener('blur', onLeave);
+  }
 }
 
 /**
- * Fills the screen with the timer. Must be called from a user gesture, and
- * fails quietly: fullscreen is a nicety, not something to break a start over.
+ * Fills the screen with the timer. Must be called from a user gesture.
+ *
+ * Fullscreen is a nicety, and not every browser offers it on an ordinary
+ * element — iOS Safari allows it only on a video. Calling a method that is not
+ * there throws straight away, where a rejected promise would have been caught,
+ * and that exception would take the rest of the click handler with it.
  */
 export function enterFullscreen(): void {
-  if (!document.fullscreenElement) {
-    void document.documentElement.requestFullscreen().catch(() => undefined);
+  const root = document.documentElement;
+
+  if (document.fullscreenElement || typeof root.requestFullscreen !== 'function') {
+    return;
   }
+
+  void root.requestFullscreen().catch(() => undefined);
 }
 
 /** Leaving needs no gesture, so this can run when a session ends. */
 export function exitFullscreen(): void {
-  if (document.fullscreenElement) {
-    void document.exitFullscreen().catch(() => undefined);
+  if (
+    !document.fullscreenElement ||
+    typeof document.exitFullscreen !== 'function'
+  ) {
+    return;
   }
+
+  void document.exitFullscreen().catch(() => undefined);
 }
