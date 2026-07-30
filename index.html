@@ -39,14 +39,23 @@
             <span class="dial__hand"></span>
           </div>
 
-          <p class="session__mode" data-mode>Focus · 1/4</p>
+          <div class="modes" role="group" aria-label="Session mode">
+            <button class="mode" type="button" data-mode-focus aria-pressed="true">
+              Focus
+            </button>
+            <button class="mode" type="button" data-mode-break aria-pressed="false">
+              Break
+            </button>
+          </div>
+
+          <p class="session__today" data-today>0 today</p>
 
           <p class="session__time" role="timer" aria-live="off">
             <span data-clock>25:00</span
             ><span class="session__centiseconds" data-centiseconds>00</span>
           </p>
 
-          <p class="session__next" data-next>Next: short break</p>
+          <p class="session__hint" data-hint hidden>Paused — you left</p>
         </div>
 
         <div class="controls">
@@ -113,15 +122,15 @@
         </label>
 
         <label class="field">
-          <span class="field__name">Short break</span>
+          <span class="field__name">Break</span>
           <input
             class="field__input"
             type="number"
             inputmode="numeric"
             step="1"
             min="0"
-            aria-label="Short break minutes"
-            data-short-break-minutes
+            aria-label="Break minutes"
+            data-break-minutes
           />
           <input
             class="field__input"
@@ -130,33 +139,11 @@
             step="1"
             min="0"
             max="59"
-            aria-label="Short break seconds"
-            data-short-break-seconds
+            aria-label="Break seconds"
+            data-break-seconds
           />
         </label>
 
-        <label class="field">
-          <span class="field__name">Long break</span>
-          <input
-            class="field__input"
-            type="number"
-            inputmode="numeric"
-            step="1"
-            min="0"
-            aria-label="Long break minutes"
-            data-long-break-minutes
-          />
-          <input
-            class="field__input"
-            type="number"
-            inputmode="numeric"
-            step="1"
-            min="0"
-            max="59"
-            aria-label="Long break seconds"
-            data-long-break-seconds
-          />
-        </label>
       </div>
     </aside>
 

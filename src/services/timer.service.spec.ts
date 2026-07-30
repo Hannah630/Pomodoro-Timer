@@ -10,8 +10,7 @@ import {
 import { TimerService, type TimerServiceOptions } from './timer.service';
 
 const FOCUS_MS = DEFAULT_SETTINGS.focusSeconds * MS_PER_SECOND;
-const SHORT_BREAK_MS = DEFAULT_SETTINGS.shortBreakSeconds * MS_PER_SECOND;
-const LONG_BREAK_MS = DEFAULT_SETTINGS.longBreakSeconds * MS_PER_SECOND;
+const BREAK_MS = DEFAULT_SETTINGS.breakSeconds * MS_PER_SECOND;
 
 const createdTimers: TimerService[] = [];
 
@@ -72,7 +71,7 @@ describe('TimerService', () => {
 
       runToCompletion(service, advance);
 
-      expect(service.getSessionDurationMs()).toBe(SHORT_BREAK_MS);
+      expect(service.getSessionDurationMs()).toBe(BREAK_MS);
     });
 
     it('follows a settings change made while idle', () => {
@@ -97,40 +96,55 @@ describe('TimerService', () => {
     });
   });
 
-  describe('what comes next', () => {
-    it('sees a short break ahead early in the cycle', () => {
-      const { service } = createTimer();
+  describe('choosing a mode by hand', () => {
+    it('switches to the chosen mode, stopped and at full length', () => {
+      const { service, advance } = createTimer();
 
-      expect(service.getNextMode()).toBe('shortBreak');
+      service.start();
+      advance(60_000);
+      service.tick();
+      service.selectMode('break');
+
+      expect(service.getState()).toMatchObject({
+        mode: 'break',
+        status: 'idle',
+        remainingMs: BREAK_MS,
+      });
     });
 
-    it('sees the long break ahead on the session that earns it', () => {
-      const { service } = createTimer({ completedFocusCount: 3 });
+    it('ignores a choice of the mode already running', () => {
+      const { service, advance } = createTimer();
 
-      expect(service.getNextMode()).toBe('longBreak');
+      service.start();
+      advance(60_000);
+      service.tick();
+      service.selectMode('focus');
+
+      expect(service.getState()).toMatchObject({
+        status: 'running',
+        remainingMs: FOCUS_MS - 60_000,
+      });
     });
 
-    it('sees a short break again once the cycle restarts', () => {
-      const { service } = createTimer({ completedFocusCount: 4 });
-
-      expect(service.getNextMode()).toBe('shortBreak');
-    });
-
-    it('sees focus ahead during any break', () => {
+    it('leaves the finished count alone', () => {
       const { service, advance } = createTimer();
 
       runToCompletion(service, advance);
+      service.selectMode('focus');
 
-      expect(service.getNextMode()).toBe('focus');
+      expect(service.getState().completedFocusCount).toBe(1);
     });
 
-    it('agrees with the mode the transition actually picks', () => {
-      const { service, advance } = createTimer({ completedFocusCount: 3 });
-      const predicted = service.getNextMode();
+    it('tells subscribers about the switch', () => {
+      const { service } = createTimer();
+      const listener = vi.fn();
 
-      runToCompletion(service, advance);
+      service.subscribe(listener);
+      service.selectMode('break');
 
-      expect(service.getState().mode).toBe(predicted);
+      expect(listener).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ mode: 'break' }),
+      );
     });
   });
 
@@ -245,47 +259,36 @@ describe('TimerService', () => {
   });
 
   describe('mode transitions', () => {
-    it('counts a finished focus session and moves to a short break', () => {
+    it('counts a finished focus session and moves to a break', () => {
       const { service, advance } = createTimer();
 
       runToCompletion(service, advance);
 
       expect(service.getState()).toEqual({
-        mode: 'shortBreak',
+        mode: 'break',
         status: 'idle',
-        remainingMs: SHORT_BREAK_MS,
+        remainingMs: BREAK_MS,
         completedFocusCount: 1,
       });
     });
 
-    it('takes a long break after the fourth focus session', () => {
+    it('takes the same break however many sessions have gone before', () => {
       const { service, advance } = createTimer({ completedFocusCount: 3 });
 
       runToCompletion(service, advance);
 
       expect(service.getState()).toMatchObject({
-        mode: 'longBreak',
-        remainingMs: LONG_BREAK_MS,
+        mode: 'break',
+        remainingMs: BREAK_MS,
         completedFocusCount: 4,
-      });
-    });
-
-    it('goes back to short breaks on the fifth focus session', () => {
-      const { service, advance } = createTimer({ completedFocusCount: 4 });
-
-      runToCompletion(service, advance);
-
-      expect(service.getState()).toMatchObject({
-        mode: 'shortBreak',
-        completedFocusCount: 5,
       });
     });
 
     it('returns to focus after a break, without counting the break', () => {
       const { service, advance } = createTimer();
 
-      runToCompletion(service, advance); // focus -> shortBreak
-      runToCompletion(service, advance); // shortBreak -> focus
+      runToCompletion(service, advance); // focus -> break
+      runToCompletion(service, advance); // break -> focus
 
       expect(service.getState()).toMatchObject({
         mode: 'focus',
@@ -318,7 +321,7 @@ describe('TimerService', () => {
     it('uses the new duration for the next session of that mode', () => {
       const { service, advance } = createTimer();
 
-      service.updateSettings({ shortBreakSeconds: 3 * SECONDS_PER_MINUTE });
+      service.updateSettings({ breakSeconds: 3 * SECONDS_PER_MINUTE });
       runToCompletion(service, advance);
 
       expect(service.getState().remainingMs).toBe(3 * SECONDS_PER_MINUTE * MS_PER_SECOND);
@@ -337,17 +340,17 @@ describe('TimerService', () => {
     it('clamps a negative duration', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ shortBreakSeconds: -5 });
+      service.updateSettings({ breakSeconds: -5 });
 
-      expect(service.getSettings().shortBreakSeconds).toBe(MIN_SESSION_SECONDS);
+      expect(service.getSettings().breakSeconds).toBe(MIN_SESSION_SECONDS);
     });
 
     it('clamps a duration above the maximum', () => {
       const { service } = createTimer();
 
-      service.updateSettings({ longBreakSeconds: 999_999 });
+      service.updateSettings({ breakSeconds: 999_999 });
 
-      expect(service.getSettings().longBreakSeconds).toBe(MAX_SESSION_SECONDS);
+      expect(service.getSettings().breakSeconds).toBe(MAX_SESSION_SECONDS);
     });
 
     it('rounds a fractional duration to whole seconds', () => {
@@ -363,31 +366,24 @@ describe('TimerService', () => {
 
       service.updateSettings({ focusSeconds: Number.NaN });
       service.updateSettings({
-        shortBreakSeconds: 'abc' as unknown as number,
+        breakSeconds: 'abc' as unknown as number,
       });
 
       expect(service.getSettings()).toMatchObject({
         focusSeconds: DEFAULT_SETTINGS.focusSeconds,
-        shortBreakSeconds: DEFAULT_SETTINGS.shortBreakSeconds,
+        breakSeconds: DEFAULT_SETTINGS.breakSeconds,
       });
     });
 
-    it('never lets a cycle be shorter than one round', () => {
-      const { service } = createTimer();
-
-      service.updateSettings({ roundsPerLongBreak: 0 });
-
-      expect(service.getSettings().roundsPerLongBreak).toBe(1);
-    });
 
     it('validates settings supplied at construction, not just through the form', () => {
       const { service } = createTimer({
-        settings: { focusSeconds: 999_999, shortBreakSeconds: Number.NaN },
+        settings: { focusSeconds: 999_999, breakSeconds: Number.NaN },
       });
 
       expect(service.getSettings()).toMatchObject({
         focusSeconds: MAX_SESSION_SECONDS,
-        shortBreakSeconds: DEFAULT_SETTINGS.shortBreakSeconds,
+        breakSeconds: DEFAULT_SETTINGS.breakSeconds,
       });
     });
   });
@@ -428,7 +424,7 @@ describe('TimerService', () => {
 
       expect(listener).toHaveBeenCalledExactlyOnceWith(
         'focus',
-        'shortBreak',
+        'break',
         FOCUS_MS,
       );
     });
@@ -445,7 +441,7 @@ describe('TimerService', () => {
 
       expect(listener).toHaveBeenCalledExactlyOnceWith(
         'focus',
-        'shortBreak',
+        'break',
         FOCUS_MS,
       );
     });

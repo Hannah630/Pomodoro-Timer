@@ -1,7 +1,6 @@
 import {
   DEFAULT_SETTINGS,
   MAX_SESSION_SECONDS,
-  MIN_ROUNDS_PER_LONG_BREAK,
   MIN_SESSION_SECONDS,
   MS_PER_SECOND,
   type TimerMode,
@@ -95,16 +94,22 @@ export class TimerService {
   }
 
   /**
-   * What this session leads to, asked before it has finished.
+   * Switches to a mode by hand, at its full length and stopped.
    *
-   * Same rule as the transition itself, applied to the count as it will be
-   * once the session lands, so the UI can say what is coming without
-   * restating the rule.
+   * Choosing the mode already running does nothing, so a stray click on the
+   * current mode cannot throw away a session in progress. Restarting the
+   * current one is what reset is for.
    */
-  getNextMode(): TimerMode {
-    return this.mode === 'focus'
-      ? this.breakAfterFocus(this.completedFocusCount + 1)
-      : 'focus';
+  selectMode(mode: TimerMode): void {
+    if (mode === this.mode) {
+      return;
+    }
+
+    this.stopInterval();
+    this.status = 'idle';
+    this.endAt = null;
+    this.beginSession(mode);
+    this.emitState();
   }
 
   /**
@@ -233,26 +238,15 @@ export class TimerService {
   }
 
   private nextModeAfter(finished: TimerMode): TimerMode {
-    return finished === 'focus'
-      ? this.breakAfterFocus(this.completedFocusCount)
-      : 'focus';
-  }
-
-  /** A long break lands on every whole cycle of finished focus sessions. */
-  private breakAfterFocus(focusCount: number): TimerMode {
-    const isLongBreakDue = focusCount % this.settings.roundsPerLongBreak === 0;
-
-    return isLongBreakDue ? 'longBreak' : 'shortBreak';
+    return finished === 'focus' ? 'break' : 'focus';
   }
 
   private durationMsFor(mode: TimerMode): number {
     switch (mode) {
       case 'focus':
         return this.settings.focusSeconds * MS_PER_SECOND;
-      case 'shortBreak':
-        return this.settings.shortBreakSeconds * MS_PER_SECOND;
-      case 'longBreak':
-        return this.settings.longBreakSeconds * MS_PER_SECOND;
+      case 'break':
+        return this.settings.breakSeconds * MS_PER_SECOND;
     }
   }
 
@@ -287,18 +281,7 @@ function sanitizeSettings(
 ): TimerSettings {
   return {
     focusSeconds: sanitizeSeconds(patch.focusSeconds, current.focusSeconds),
-    shortBreakSeconds: sanitizeSeconds(
-      patch.shortBreakSeconds,
-      current.shortBreakSeconds,
-    ),
-    longBreakSeconds: sanitizeSeconds(
-      patch.longBreakSeconds,
-      current.longBreakSeconds,
-    ),
-    roundsPerLongBreak: sanitizeRounds(
-      patch.roundsPerLongBreak,
-      current.roundsPerLongBreak,
-    ),
+    breakSeconds: sanitizeSeconds(patch.breakSeconds, current.breakSeconds),
   };
 }
 
@@ -308,14 +291,6 @@ function sanitizeSeconds(value: number | undefined, fallback: number): number {
   }
 
   return clamp(Math.round(value), MIN_SESSION_SECONDS, MAX_SESSION_SECONDS);
-}
-
-function sanitizeRounds(value: number | undefined, fallback: number): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return fallback;
-  }
-
-  return Math.max(MIN_ROUNDS_PER_LONG_BREAK, Math.round(value));
 }
 
 function clamp(value: number, min: number, max: number): number {

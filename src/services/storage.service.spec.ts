@@ -123,15 +123,38 @@ describe('storage service', () => {
     });
   });
 
-  describe('upgrading a version 1 save', () => {
-    function v1Payload(settings: unknown, completedFocusCount: unknown = 3) {
-      return JSON.stringify({ version: 1, settings, completedFocusCount });
+  describe('upgrading an older save', () => {
+    function oldPayload(
+      version: number,
+      settings: unknown,
+      completedFocusCount: unknown = 3,
+    ) {
+      return JSON.stringify({ version, settings, completedFocusCount });
     }
 
-    it('converts the durations from minutes to seconds', () => {
+    it('carries a version 2 save forward, keeping the short break', () => {
       const service = createStorageService(
         createFakeStorage(
-          v1Payload({
+          oldPayload(2, {
+            focusSeconds: 1800,
+            shortBreakSeconds: 300,
+            longBreakSeconds: 1200,
+            roundsPerLongBreak: 4,
+          }),
+        ),
+      );
+
+      expect(service.load()).toEqual({
+        settings: { focusSeconds: 1800, breakSeconds: 300 },
+        completedFocusCount: 3,
+        totalFocusMs: 0,
+      });
+    });
+
+    it('runs a version 1 save through both steps', () => {
+      const service = createStorageService(
+        createFakeStorage(
+          oldPayload(1, {
             focusMinutes: 30,
             shortBreakMinutes: 5,
             longBreakMinutes: 20,
@@ -140,21 +163,15 @@ describe('storage service', () => {
         ),
       );
 
-      expect(service.load()).toEqual({
-        settings: {
-          focusSeconds: 1800,
-          shortBreakSeconds: 300,
-          longBreakSeconds: 1200,
-          roundsPerLongBreak: 4,
-        },
-        completedFocusCount: 3,
-        totalFocusMs: 0,
+      expect(service.load()?.settings).toEqual({
+        focusSeconds: 1800,
+        breakSeconds: 300,
       });
     });
 
     it('keeps the session count across the upgrade', () => {
       const service = createStorageService(
-        createFakeStorage(v1Payload({ focusMinutes: 30 }, 12)),
+        createFakeStorage(oldPayload(1, { focusMinutes: 30 }, 12)),
       );
 
       expect(service.load()?.completedFocusCount).toBe(12);
@@ -163,7 +180,7 @@ describe('storage service', () => {
     it('leaves out fields it cannot convert, rather than guessing', () => {
       const service = createStorageService(
         createFakeStorage(
-          v1Payload({ focusMinutes: 30, shortBreakMinutes: 'abc' }),
+          oldPayload(1, { focusMinutes: 30, shortBreakMinutes: 'abc' }),
         ),
       );
 
@@ -171,7 +188,7 @@ describe('storage service', () => {
     });
 
     it('upgrades an empty settings object to an empty one', () => {
-      const service = createStorageService(createFakeStorage(v1Payload({})));
+      const service = createStorageService(createFakeStorage(oldPayload(1, {})));
 
       expect(service.load()?.settings).toEqual({});
     });

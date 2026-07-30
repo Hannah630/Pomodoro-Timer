@@ -22,8 +22,7 @@
 
   /* One bright accent per mode. Nothing else in the app is coloured. */
   --mode-focus: #ff4438;
-  --mode-short-break: #37c98b;
-  --mode-long-break: #4d8dff;
+  --mode-break: #37c98b;
 
   /* Points at the accent of the current mode. Rewritten by timer-view. */
   --mode: var(--mode-focus);
