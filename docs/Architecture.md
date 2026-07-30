@@ -60,6 +60,31 @@ break 結束 → focus
 上緣一條 `--mode` 色的亮線隨倒數下沉。**JavaScript 只寫這兩個變數，不直接操作
 任何樣式**——渲染完全交給 CSS，這讓邏輯層與表現層的界線在程式碼裡看得見。
 
+## 持久化
+
+localStorage key 為 `pomodoro-timer`，內容是：
+
+```json
+{ "version": 1, "settings": { ... }, "completedFocusCount": 3 }
+```
+
+職責切分：
+
+| 層 | 檢查什麼 |
+| --- | --- |
+| `StorageService` | **信封**：能不能解析、是不是物件、版本對不對。不對就回 `null`，讓 app 用預設值開起來 |
+| `TimerService` | **內容**：時長是不是合法（範圍、整數）。存檔裡的 `settings` 原封不動傳進去，由它過濾 |
+
+這樣「什麼算合法的時長」只寫一份。`completedFocusCount` 的外部來源只有 storage
+一個，所以就在 storage 檢查一次（非數字或負數 → 0，小數 → 無條件捨去）。
+
+`StorageService` 依賴的是自己宣告的 `KeyValueStorage` 介面（只有 `getItem` /
+`setItem`），不是瀏覽器的 `Storage`。這讓它在 node 環境下也能測，也明確說出它
+真正需要的能力（ISP）。
+
+**寫入時機**：只在「完成一輪」與「修改設定」時寫。訂閱每次狀態變化去寫的話，
+一秒會寫四次，而這兩個值根本不會在 tick 時改變。
+
 ## 已決定的取捨（MVP）
 
 | 決策 | 理由 |
