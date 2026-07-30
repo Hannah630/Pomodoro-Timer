@@ -5,6 +5,25 @@
  */
 
 /**
+ * A tomato watermark, the way a record sheet carries one.
+ *
+ * The tile is a mask rather than an image, so the colour comes from a token
+ * instead of being baked into the file. It never moves: a tool for
+ * concentrating has no business animating anything in the corner of the eye.
+ */
+.watermark {
+  position: fixed;
+  inset: 0;
+  background: var(--mode-focus);
+  opacity: var(--watermark-opacity);
+  -webkit-mask: url('/tomato.svg') repeat 0 0 /
+    var(--watermark-tile) var(--watermark-tile);
+  mask: url('/tomato.svg') repeat 0 0 / var(--watermark-tile)
+    var(--watermark-tile);
+  pointer-events: none;
+}
+
+/**
  * The page is the timer. This field holds the remaining time as height, with
  * a bright rule along its top edge that sinks as the session runs down.
  * It is driven entirely by the --fill custom property, so the timer logic
@@ -52,12 +71,24 @@
   padding: calc(var(--space-l) + 2.5rem) var(--space-m) var(--space-l);
 }
 
+/**
+ * Three groups, not five stacked blocks: the instrument, the controls, the
+ * task. Even gaps throughout made everything read as equally important, so
+ * the parts that belong together are now tight and the groups are apart.
+ */
 .session {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-l);
   text-align: center;
+}
+
+.session__instrument {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
 }
 
 /**
