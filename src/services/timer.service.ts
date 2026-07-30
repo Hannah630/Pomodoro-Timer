@@ -67,6 +67,14 @@ export class TimerService {
   }
 
   /**
+   * Full length of the current mode. The UI needs it to turn the remaining
+   * time into a progress fraction.
+   */
+  getSessionDurationMs(): number {
+    return this.durationMsFor(this.mode);
+  }
+
+  /**
    * Starts an idle timer or resumes a paused one. Both cases do the same
    * thing: aim at a deadline `remainingMs` into the future.
    */

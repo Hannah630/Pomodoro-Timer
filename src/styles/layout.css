@@ -1,0 +1,106 @@
+/**
+ * Layout and components.
+ *
+ * Values come from the tokens in base.css; no raw colours or sizes here.
+ */
+
+/**
+ * The page is the timer. This field holds the remaining time as height, with
+ * a bright rule along its top edge that sinks as the session runs down.
+ * It is driven entirely by the --fill custom property, so the timer logic
+ * never has to touch styles directly.
+ */
+.level {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  height: calc(var(--fill) * 100%);
+  background: var(--field);
+  border-top: var(--edge-width) solid var(--mode);
+  transition: height var(--transition-fill);
+  pointer-events: none;
+}
+
+.app {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--space-l) var(--space-m);
+}
+
+.session {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-l);
+  text-align: center;
+}
+
+.session__mode {
+  margin: 0;
+  color: var(--mode);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.session__time {
+  margin: 0;
+  font-size: var(--step-clock);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.045em;
+  line-height: 0.82;
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-s);
+}
+
+.button {
+  min-height: 48px;
+  padding: 0 2rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 150ms ease, border-color 150ms ease;
+}
+
+.button:hover {
+  opacity: 0.82;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.button--primary {
+  background: var(--mode);
+  color: var(--ink);
+}
+
+.button--secondary {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.button--secondary:hover {
+  border-color: var(--text);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .level,
+  .button {
+    transition: none;
+  }
+}

@@ -58,6 +58,26 @@ describe('TimerService', () => {
     });
   });
 
+  describe('session duration', () => {
+    it('reports the full length of the current mode', () => {
+      const { service, advance } = createTimer();
+
+      expect(service.getSessionDurationMs()).toBe(FOCUS_MS);
+
+      runToCompletion(service, advance);
+
+      expect(service.getSessionDurationMs()).toBe(SHORT_BREAK_MS);
+    });
+
+    it('follows a settings change', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ focusMinutes: 10 });
+
+      expect(service.getSessionDurationMs()).toBe(10 * MS_PER_MINUTE);
+    });
+  });
+
   describe('start, pause and resume', () => {
     it('switches to running on start', () => {
       const { service } = createTimer();

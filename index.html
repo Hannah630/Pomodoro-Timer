@@ -6,7 +6,24 @@
     <title>Pomodoro Timer</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div class="level" aria-hidden="true"></div>
+
+    <main class="app" id="app">
+      <section class="session">
+        <p class="session__mode" data-mode>Focus</p>
+        <p class="session__time" data-time role="timer" aria-live="off">25:00</p>
+
+        <div class="controls">
+          <button class="button button--primary" type="button" data-primary>
+            Start
+          </button>
+          <button class="button button--secondary" type="button" data-reset>
+            Reset
+          </button>
+        </div>
+      </section>
+    </main>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
