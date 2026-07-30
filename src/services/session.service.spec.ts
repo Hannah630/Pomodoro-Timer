@@ -163,3 +163,44 @@ describe('session history', () => {
     expect(session.getHistory()).toEqual([]);
   });
 });
+
+describe('lifetime focus total', () => {
+  it('starts at zero', () => {
+    expect(createSessionService().getTotalFocusMs()).toBe(0);
+  });
+
+  it('restores what it was given', () => {
+    expect(
+      createSessionService({ totalFocusMs: 90_000 }).getTotalFocusMs(),
+    ).toBe(90_000);
+  });
+
+  it('adds up every finished session', () => {
+    const session = createSessionService();
+
+    session.recordCompletedFocus(1_500_000);
+    session.recordCompletedFocus(600_000);
+
+    expect(session.getTotalFocusMs()).toBe(2_100_000);
+  });
+
+  it('keeps counting past the point where old records are dropped', () => {
+    const session = createSessionService();
+
+    for (let index = 0; index < MAX_HISTORY_RECORDS + 10; index += 1) {
+      session.recordCompletedFocus(60_000);
+    }
+
+    expect(session.getHistory()).toHaveLength(MAX_HISTORY_RECORDS);
+    expect(session.getTotalFocusMs()).toBe((MAX_HISTORY_RECORDS + 10) * 60_000);
+  });
+
+  it('survives clearing the history, which only tidies the list', () => {
+    const session = createSessionService();
+
+    session.recordCompletedFocus(1_500_000);
+    session.clearHistory();
+
+    expect(session.getTotalFocusMs()).toBe(1_500_000);
+  });
+});

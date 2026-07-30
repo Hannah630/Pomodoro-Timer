@@ -8,6 +8,7 @@ export const MAX_TITLE_LENGTH = 20;
 
 export interface SessionServiceOptions {
   history?: readonly SessionRecord[];
+  totalFocusMs?: number;
   /** Injected so specs can record sessions without waiting for the clock. */
   now?: () => number;
   /** Injected so specs get stable ids instead of random ones. */
@@ -19,6 +20,16 @@ export interface SessionService {
   setTitle(raw: string): void;
 
   getHistory(): readonly SessionRecord[];
+
+  /**
+   * Focus time over the life of the app.
+   *
+   * Accumulated rather than added up from the history, which is capped by
+   * count and by age and can be cleared outright. Summing the list would
+   * quietly report less the longer the app is used.
+   */
+  getTotalFocusMs(): number;
+
   /** Files a finished focus session under the current title. */
   recordCompletedFocus(durationMs: number): void;
   clearHistory(): void;
@@ -38,6 +49,7 @@ export function createSessionService(
 
   let title = '';
   let history: readonly SessionRecord[] = options.history ?? [];
+  let totalFocusMs = options.totalFocusMs ?? 0;
 
   return {
     getTitle: () => title,
@@ -51,7 +63,11 @@ export function createSessionService(
 
     getHistory: () => history,
 
+    getTotalFocusMs: () => totalFocusMs,
+
     recordCompletedFocus(durationMs) {
+      totalFocusMs += durationMs;
+
       const record: SessionRecord = {
         id: createId(),
         title,
@@ -65,6 +81,8 @@ export function createSessionService(
     },
 
     clearHistory() {
+      // The lifetime total is deliberately untouched: clearing the list is
+      // tidying up, not undoing the work.
       history = [];
     },
   };

@@ -1,5 +1,7 @@
 import {
+  MAX_HISTORY_AGE_DAYS,
   MAX_HISTORY_RECORDS,
+  MS_PER_DAY,
   type SessionRecord,
 } from '../models/session.model';
 import type { KeyValueStorage } from './key-value-storage';
@@ -28,6 +30,8 @@ export interface HistoryStorage {
  */
 export function createHistoryStorage(
   storage: KeyValueStorage,
+  /** Injected so the age limit can be exercised without waiting months. */
+  now: () => number = () => Date.now(),
 ): HistoryStorage {
   return {
     load() {
@@ -47,8 +51,11 @@ export function createHistoryStorage(
         return [];
       }
 
+      const oldestKept = now() - MAX_HISTORY_AGE_DAYS * MS_PER_DAY;
+
       return parsed['records']
         .filter(isSessionRecord)
+        .filter((record) => record.finishedAt >= oldestKept)
         .slice(0, MAX_HISTORY_RECORDS);
     },
 
