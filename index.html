@@ -7,6 +7,7 @@
     <title>Pomodoro Timer</title>
   </head>
   <body>
+    <div class="watermark" aria-hidden="true"></div>
     <div class="level" aria-hidden="true"></div>
 
     <div class="toolbar">
@@ -33,12 +34,16 @@
 
     <main class="app" id="app">
       <section class="session">
-        <div class="dial" aria-hidden="true">
-          <span class="dial__hand"></span>
-        </div>
+        <div class="session__instrument">
+          <div class="dial" aria-hidden="true">
+            <span class="dial__hand"></span>
+          </div>
 
-        <p class="session__mode" data-mode>Focus</p>
-        <p class="session__time" data-time role="timer" aria-live="off">25:00</p>
+          <p class="session__mode" data-mode>Focus</p>
+          <p class="session__time" data-time role="timer" aria-live="off">
+            25:00
+          </p>
+        </div>
 
         <div class="controls">
           <button class="button button--primary" type="button" data-primary>

@@ -1,7 +1,7 @@
 import type { TimerMode, TimerState } from '../models/timer.model';
 import { formatTime } from '../utils/format';
 import { queryElement } from './dom';
-import { MODE_LABELS } from './labels';
+import { formatModeLabel } from './labels';
 
 /** Each mode points the shared --mode token at its own accent. */
 const MODE_ACCENTS: Record<TimerMode, string> = {
@@ -14,7 +14,11 @@ const MODE_ACCENTS: Record<TimerMode, string> = {
 const ALERT_DURATION_MS = 900;
 
 export interface TimerView {
-  render(state: TimerState, sessionDurationMs: number): void;
+  render(
+    state: TimerState,
+    sessionDurationMs: number,
+    roundsPerLongBreak: number,
+  ): void;
 
   /**
    * A one-off wash of colour when a session ends. Always shown, so the app
@@ -50,7 +54,7 @@ export function createTimerView(root: ParentNode): TimerView {
       }, ALERT_DURATION_MS);
     },
 
-    render(state, sessionDurationMs) {
+    render(state, sessionDurationMs, roundsPerLongBreak) {
       const time = formatTime(state.remainingMs);
 
       // The timer ticks four times a second but the display only changes
@@ -59,7 +63,7 @@ export function createTimerView(root: ParentNode): TimerView {
         timeElement.textContent = time;
       }
 
-      modeElement.textContent = MODE_LABELS[state.mode];
+      modeElement.textContent = formatModeLabel(state, roundsPerLongBreak);
 
       theme.setProperty('--mode', MODE_ACCENTS[state.mode]);
       theme.setProperty('--fill', String(fillOf(state.remainingMs, sessionDurationMs)));

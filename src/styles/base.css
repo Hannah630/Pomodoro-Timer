@@ -34,8 +34,8 @@
   --ink: #0f1216;
   --text: #f2f3f5;
   --muted: #7c838e;
-  /* Quiet, now that the dial carries the countdown. */
-  --field: color-mix(in srgb, var(--mode) 7%, var(--ink));
+  /* Quiet, and translucent so the watermark stays visible through it. */
+  --field: color-mix(in srgb, var(--mode) 10%, transparent);
   --line: color-mix(in srgb, var(--text) 16%, transparent);
   /* Anything that sits above the page rather than on it. */
   --surface: color-mix(in srgb, var(--text) 6%, var(--ink));
@@ -60,6 +60,9 @@
   --space-s: 0.75rem;
   --space-m: 1.5rem;
   --space-l: clamp(1.5rem, 4vh, 2.5rem);
+
+  --watermark-tile: 160px;
+  --watermark-opacity: 0.05;
 
   --dial-size: clamp(7rem, min(38vw, 34vh), 12rem);
   --dial-hand-width: 2px;
