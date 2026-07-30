@@ -1,0 +1,19 @@
+{
+  "name": "pomodoro-timer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A pomodoro countdown timer built as a frontend practice project",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  }
+}
