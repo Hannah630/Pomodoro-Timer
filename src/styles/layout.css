@@ -137,6 +137,33 @@
   text-transform: uppercase;
 }
 
+/* Borderless until you reach for it, so it reads as a caption not a form. */
+.title {
+  width: min(20rem, 100%);
+  padding: var(--space-xs) var(--space-s);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--step-title);
+  text-align: center;
+  transition: background-color 150ms ease;
+}
+
+.title::placeholder {
+  color: var(--muted);
+}
+
+.title:hover {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.title:focus-visible {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  outline: 2px solid var(--mode);
+  outline-offset: 2px;
+}
+
 .session__time {
   margin: 0;
   font-size: var(--step-clock);
@@ -333,7 +360,8 @@
 @media (prefers-reduced-motion: reduce) {
   :root,
   .button,
-  .rounds__dot {
+  .rounds__dot,
+  .title {
     transition: none;
   }
 }
