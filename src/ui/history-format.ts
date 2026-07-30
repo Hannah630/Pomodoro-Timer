@@ -16,6 +16,8 @@ const MONTHS = [
   'Dec',
 ] as const;
 
+const MINUTES_PER_HOUR = 60;
+
 export interface HistoryDay {
   readonly label: string;
   readonly records: readonly SessionRecord[];
@@ -103,9 +105,48 @@ export function summarizeToday(
 }
 
 export function formatTodaySummary(summary: TodaySummary): string {
-  const unit = summary.sessions === 1 ? 'session' : 'sessions';
+  return `${formatSessionCount(summary.sessions)} · ${
+    summary.minutes
+  } min today`;
+}
 
-  return `${summary.sessions} ${unit} · ${summary.minutes} min today`;
+export function formatAllTimeSummary(
+  sessions: number,
+  totalFocusMs: number,
+): string {
+  return `All time · ${formatSessionCount(sessions)} · ${formatTotalDuration(
+    totalFocusMs,
+  )}`;
+}
+
+/** The totals a single day's heading carries. */
+export function formatDayTotals(records: readonly SessionRecord[]): string {
+  const minutes = Math.round(
+    records.reduce((sum, record) => sum + record.durationMs, 0) / MS_PER_MINUTE,
+  );
+
+  return `${records.length} · ${minutes} min`;
+}
+
+/**
+ * Minutes read fine up to an hour and stop being graspable after that, so
+ * anything longer switches to hours, dropping the minutes when they are zero.
+ */
+export function formatTotalDuration(totalMs: number): string {
+  const totalMinutes = Math.round(totalMs / MS_PER_MINUTE);
+
+  if (totalMinutes < MINUTES_PER_HOUR) {
+    return `${totalMinutes} min`;
+  }
+
+  const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
+  const minutes = totalMinutes % MINUTES_PER_HOUR;
+
+  return minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`;
+}
+
+function formatSessionCount(sessions: number): string {
+  return `${sessions} ${sessions === 1 ? 'session' : 'sessions'}`;
 }
 
 export function isSameDay(a: number, b: number): boolean {

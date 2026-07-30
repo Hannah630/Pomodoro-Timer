@@ -125,6 +125,29 @@
 > 副作用：畫面上不再顯示「離長休息還有幾輪」。行為本身沒變，`TimerService`
 > 的測試仍然守著；要顯示的話最省空間的位置是模式標籤（`FOCUS 3/4`）。
 
+## Stage 14 — 番茄水印與版面分組　`feat/tomato-watermark`
+
+- [x] `public/tomato.svg` 當 CSS mask，顏色仍由 token 決定；靜態不動畫
+- [x] `--field` 改成半透明，水印能透出來
+- [x] `.session__instrument` 把錶盤／模式／時間收成一組，組間才拉開
+- [x] 輪次併回模式標籤（`Focus · 3/4`），`labels.ts` + spec
+- [ ] 驗收：水印夠淡不干擾、三組層次清楚、輪次數字正確跨週期
+
+## Stage 15 — 秒數精度　`feat/second-precision`
+
+- [x] `TimerSettings` 改存秒（`focusSeconds` 等），下限 5 秒
+- [x] Settings 每列拆成「分 / 秒」兩個欄位，model 仍只存一個數字
+- [x] **存檔升到 v2 並寫遷移**（v1 的分鐘 × 60），舊設定不會被丟掉
+- [ ] 驗收：可設 10 秒；舊存檔（v1）重整後設定仍在且值正確
+
+## Stage 16 — 歷史保留與統計　`feat/history-totals`
+
+- [x] 上限 100 → 500 筆，另加 90 天期限（`MAX_HISTORY_AGE_DAYS`）
+- [x] `SessionService.getTotalFocusMs()` 累加器，清空歷史不會歸零
+- [x] `totalFocusMs` 存進主存檔（欄位缺失自動回退 0，不需再升版本）
+- [x] 抽屜加 All time 一行，日期標題加當日小計
+- [ ] 驗收：完成幾輪後 All time 正確；清空歷史後 All time 仍在
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑

@@ -1,7 +1,9 @@
 import type { SessionRecord } from '../models/session.model';
 import { queryElement } from './dom';
 import {
+  formatAllTimeSummary,
   formatClockTime,
+  formatDayTotals,
   formatDuration,
   formatTodaySummary,
   groupByDay,
@@ -16,8 +18,13 @@ export interface HistoryHandlers {
   onClear(): void;
 }
 
+export interface AllTimeTotals {
+  readonly sessions: number;
+  readonly focusMs: number;
+}
+
 export interface HistoryView {
-  render(records: readonly SessionRecord[]): void;
+  render(records: readonly SessionRecord[], allTime: AllTimeTotals): void;
 
   /** Drops a half-finished clear, so the drawer never reopens mid-question. */
   resetConfirm(): void;
@@ -35,6 +42,7 @@ export function createHistoryView(
   handlers: HistoryHandlers,
 ): HistoryView {
   const summary = queryElement(root, '[data-history-summary]');
+  const lifetime = queryElement(root, '[data-history-lifetime]');
   const list = queryElement(root, '[data-history]');
   const empty = queryElement(root, '[data-history-empty]');
   const clearButton = queryElement<HTMLButtonElement>(
@@ -72,7 +80,7 @@ export function createHistoryView(
   return {
     resetConfirm: cancelConfirm,
 
-    render(records) {
+    render(records, allTime) {
       const hasRecords = records.length > 0;
       const now = Date.now();
 
@@ -80,6 +88,14 @@ export function createHistoryView(
       empty.hidden = hasRecords;
       clearButton.hidden = !hasRecords;
       cancelConfirm();
+
+      // The lifetime line stays even with an empty list, since clearing the
+      // history does not undo the work it recorded.
+      lifetime.hidden = allTime.sessions === 0;
+      lifetime.textContent = formatAllTimeSummary(
+        allTime.sessions,
+        allTime.focusMs,
+      );
 
       summary.textContent = formatTodaySummary(summarizeToday(records, now));
       list.replaceChildren(
@@ -95,7 +111,15 @@ function buildDay(day: HistoryDay): HTMLElement {
 
   const label = document.createElement('h3');
   label.className = 'history__day-label';
-  label.textContent = day.label;
+
+  const name = document.createElement('span');
+  name.textContent = day.label;
+
+  const totals = document.createElement('span');
+  totals.className = 'history__day-totals';
+  totals.textContent = formatDayTotals(day.records);
+
+  label.append(name, totals);
 
   const rows = document.createElement('ul');
   rows.className = 'history__rows';

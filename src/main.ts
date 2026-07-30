@@ -33,7 +33,10 @@ const timer = new TimerService({
   completedFocusCount: restored?.completedFocusCount,
 });
 const historyStorage = createHistoryStorage(localStorage);
-const session = createSessionService({ history: historyStorage.load() });
+const session = createSessionService({
+  history: historyStorage.load(),
+  totalFocusMs: restored?.totalFocusMs,
+});
 
 const timerView = createTimerView(app);
 const titleView = createTitleView(app, {
@@ -94,7 +97,14 @@ function applyTitle(raw: string): void {
 
 function saveHistory(): void {
   historyStorage.save(session.getHistory());
-  historyView.render(session.getHistory());
+  renderHistory();
+}
+
+function renderHistory(): void {
+  historyView.render(session.getHistory(), {
+    sessions: timer.getState().completedFocusCount,
+    focusMs: session.getTotalFocusMs(),
+  });
 }
 
 /**
@@ -116,18 +126,20 @@ function persist(): void {
   storage.save({
     settings: timer.getSettings(),
     completedFocusCount: timer.getState().completedFocusCount,
+    totalFocusMs: session.getTotalFocusMs(),
   });
 }
 
 timer.subscribe(render);
 timer.onComplete((finished, next, durationMs) => {
-  persist();
-
+  // Record before persisting: the lifetime total is written by persist, and
+  // recording is what moves it.
   if (finished === 'focus') {
     session.recordCompletedFocus(durationMs);
     saveHistory();
   }
 
+  persist();
   timerView.flash();
   notifications.notify(
     `${MODE_LABELS[finished]} finished`,
@@ -138,7 +150,7 @@ timer.onComplete((finished, next, durationMs) => {
 render(timer.getState());
 settingsView.render(timer.getSettings());
 titleView.setValue(session.getTitle());
-historyView.render(session.getHistory());
+renderHistory();
 
 // A background tab throttles the interval, so the display can be several
 // seconds stale by the time the user comes back. One tick on return recomputes

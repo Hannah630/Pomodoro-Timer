@@ -8,9 +8,15 @@ export interface SessionRecord {
 }
 
 /**
- * How many records to keep.
+ * Retention: whichever limit bites first.
  *
- * Enough to cover weeks of use, and low enough that the list stays quick to
- * render and the save stays small. Nobody scrolls back further than this.
+ * The age limit is the one with meaning — "the last three months" is something
+ * a person can hold in their head, where "the last 500" is not. The count is
+ * the backstop that keeps the save small however heavily the app is used; at
+ * roughly 130 bytes a record, 500 of them is about 65 KB, well inside the 5 MB
+ * a browser allows.
  */
-export const MAX_HISTORY_RECORDS = 100;
+export const MAX_HISTORY_RECORDS = 500;
+export const MAX_HISTORY_AGE_DAYS = 90;
+
+export const MS_PER_DAY = 24 * 60 * 60 * 1_000;

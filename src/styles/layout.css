@@ -342,6 +342,9 @@
 .history__day-label {
   position: sticky;
   top: 0;
+  display: flex;
+  gap: var(--space-s);
+  justify-content: space-between;
   margin: 0;
   padding-bottom: var(--space-xs);
   border-bottom: 1px solid var(--line);
@@ -356,6 +359,11 @@
 /* With no entries there is nothing to fill, so let the empty note sit up top. */
 .history:empty {
   flex: 0;
+}
+
+.history__day-totals {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
 }
 
 .history__rows {
@@ -540,6 +548,13 @@
   margin: 0;
   color: var(--text);
   font-size: var(--step-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.drawer__lifetime {
+  margin: calc(var(--space-m) * -1 + var(--space-xs)) 0 0;
+  color: var(--muted);
+  font-size: var(--step-label);
   font-variant-numeric: tabular-nums;
 }
 

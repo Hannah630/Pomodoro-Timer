@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import type { SessionRecord } from '../models/session.model';
 import {
+  formatAllTimeSummary,
   formatClockTime,
   formatDayLabel,
+  formatDayTotals,
   formatDuration,
   formatTodaySummary,
+  formatTotalDuration,
   groupByDay,
   isSameDay,
   summarizeToday,
@@ -132,6 +135,47 @@ describe('summarizeToday', () => {
     );
 
     expect(summary).toEqual({ sessions: 2, minutes: 50 });
+  });
+});
+
+describe('formatTotalDuration', () => {
+  it('stays in minutes below an hour', () => {
+    expect(formatTotalDuration(45 * 60_000)).toBe('45 min');
+    expect(formatTotalDuration(0)).toBe('0 min');
+  });
+
+  it('switches to hours at an hour', () => {
+    expect(formatTotalDuration(60 * 60_000)).toBe('1 h');
+    expect(formatTotalDuration(53 * 60 * 60_000)).toBe('53 h');
+  });
+
+  it('carries the remaining minutes when there are any', () => {
+    expect(formatTotalDuration((53 * 60 + 20) * 60_000)).toBe('53 h 20 min');
+  });
+});
+
+describe('formatAllTimeSummary', () => {
+  it('reads as a lifetime line', () => {
+    expect(formatAllTimeSummary(128, (53 * 60 + 20) * 60_000)).toBe(
+      'All time · 128 sessions · 53 h 20 min',
+    );
+  });
+
+  it('uses the singular for a single session', () => {
+    expect(formatAllTimeSummary(1, 25 * 60_000)).toBe(
+      'All time · 1 session · 25 min',
+    );
+  });
+});
+
+describe('formatDayTotals', () => {
+  it('counts the entries and their minutes', () => {
+    expect(
+      formatDayTotals([
+        record(at(2026, 7, 30, 14, 32), 1_500_000),
+        record(at(2026, 7, 30, 13, 58), 600_000),
+      ]),
+    ).toBe('2 · 35 min');
   });
 });
 

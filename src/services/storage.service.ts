@@ -18,6 +18,8 @@ export const STORAGE_VERSION = 2;
 export interface PersistedState {
   readonly settings: Partial<TimerSettings>;
   readonly completedFocusCount: number;
+  /** Lifetime focus time, kept beside the count for the same reason. */
+  readonly totalFocusMs: number;
 }
 
 export interface StorageService {
@@ -58,12 +60,16 @@ export function createStorageService(
           return {
             settings: savedSettings as Partial<TimerSettings>,
             completedFocusCount: readCount(parsed['completedFocusCount']),
+            totalFocusMs: readCount(parsed['totalFocusMs']),
           };
 
         case 1:
           return {
             settings: upgradeMinutesToSeconds(savedSettings),
             completedFocusCount: readCount(parsed['completedFocusCount']),
+            // Version 1 did not track this; starting from zero is the only
+            // honest answer.
+            totalFocusMs: 0,
           };
 
         default:
