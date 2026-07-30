@@ -18,24 +18,22 @@ export interface HistoryHandlers {
 
 export interface HistoryView {
   render(records: readonly SessionRecord[]): void;
+
+  /** Drops a half-finished clear, so the drawer never reopens mid-question. */
+  resetConfirm(): void;
 }
 
 /**
- * The history drawer.
+ * The contents of the history drawer.
  *
  * The list is rendered only when the history changes, never on a tick, so
- * rebuilding the whole thing is cheap enough to keep the code simple.
- *
- * Opening is a class on the root rather than a <details> element, because a
- * details body is display:none while closed and so has nothing to slide.
+ * rebuilding the whole thing is cheap enough to keep the code simple. Opening
+ * and closing belongs to the drawer group, not here.
  */
 export function createHistoryView(
   root: ParentNode,
   handlers: HistoryHandlers,
 ): HistoryView {
-  const toggle = queryElement<HTMLButtonElement>(root, '[data-history-toggle]');
-  const drawer = queryElement(root, '[data-history-drawer]');
-  const scrim = queryElement(root, '[data-history-scrim]');
   const summary = queryElement(root, '[data-history-summary]');
   const list = queryElement(root, '[data-history]');
   const empty = queryElement(root, '[data-history-empty]');
@@ -44,28 +42,8 @@ export function createHistoryView(
     '[data-history-clear]',
   );
 
-  let isOpen = false;
   let isConfirming = false;
   let confirmTimeout: number | undefined;
-
-  function setOpen(open: boolean): void {
-    isOpen = open;
-    cancelConfirm();
-
-    document.documentElement.classList.toggle('is-history-open', open);
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.textContent = open ? 'Close' : 'History';
-
-    if (open) {
-      // inert keeps the closed drawer out of the tab order, so focus cannot
-      // land on a list that is off screen.
-      drawer.removeAttribute('inert');
-      drawer.focus();
-    } else {
-      drawer.setAttribute('inert', '');
-      toggle.focus();
-    }
-  }
 
   function cancelConfirm(): void {
     window.clearTimeout(confirmTimeout);
@@ -73,15 +51,6 @@ export function createHistoryView(
     clearButton.textContent = 'Clear history';
     clearButton.classList.remove('history__clear--confirming');
   }
-
-  toggle.addEventListener('click', () => setOpen(!isOpen));
-  scrim.addEventListener('click', () => setOpen(false));
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && isOpen) {
-      setOpen(false);
-    }
-  });
 
   clearButton.addEventListener('click', () => {
     // Clearing cannot be undone, so ask twice. A second press on the button
@@ -101,6 +70,8 @@ export function createHistoryView(
   });
 
   return {
+    resetConfirm: cancelConfirm,
+
     render(records) {
       const hasRecords = records.length > 0;
       const now = Date.now();
