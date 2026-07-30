@@ -9,22 +9,34 @@
   <body>
     <div class="level" aria-hidden="true"></div>
 
+    <button
+      class="drawer-toggle"
+      type="button"
+      data-history-toggle
+      aria-expanded="false"
+      aria-controls="history-drawer"
+    >
+      History
+    </button>
+
     <main class="app" id="app">
       <section class="session">
+        <div class="task" data-title-field>
+          <label class="task__label" for="session-title">Task</label>
+          <input
+            class="task__input"
+            id="session-title"
+            type="text"
+            data-title
+            placeholder="What are you working on?"
+          />
+        </div>
+
         <div class="dial" aria-hidden="true">
           <span class="dial__hand"></span>
         </div>
 
         <p class="session__mode" data-mode>Focus</p>
-
-        <input
-          class="title"
-          type="text"
-          data-title
-          placeholder="What are you working on?"
-          aria-label="Session title"
-        />
-
         <p class="session__time" data-time role="timer" aria-live="off">25:00</p>
 
         <div class="controls">
@@ -42,66 +54,71 @@
         </div>
       </section>
 
-      <div class="panels">
-        <details class="panel">
-          <summary class="panel__toggle">Settings</summary>
+      <details class="panel">
+        <summary class="panel__toggle">Settings</summary>
 
-          <div class="panel__body fields">
-            <label class="field">
-              <span class="field__name">Focus</span>
-              <input
-                class="field__input"
-                type="number"
-                inputmode="numeric"
-                step="1"
-                data-focus-minutes
-              />
-              <span class="field__unit">min</span>
-            </label>
+        <div class="panel__body fields">
+          <label class="field">
+            <span class="field__name">Focus</span>
+            <input
+              class="field__input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              data-focus-minutes
+            />
+            <span class="field__unit">min</span>
+          </label>
 
-            <label class="field">
-              <span class="field__name">Short break</span>
-              <input
-                class="field__input"
-                type="number"
-                inputmode="numeric"
-                step="1"
-                data-short-break-minutes
-              />
-              <span class="field__unit">min</span>
-            </label>
+          <label class="field">
+            <span class="field__name">Short break</span>
+            <input
+              class="field__input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              data-short-break-minutes
+            />
+            <span class="field__unit">min</span>
+          </label>
 
-            <label class="field">
-              <span class="field__name">Long break</span>
-              <input
-                class="field__input"
-                type="number"
-                inputmode="numeric"
-                step="1"
-                data-long-break-minutes
-              />
-              <span class="field__unit">min</span>
-            </label>
-          </div>
-        </details>
-
-        <details class="panel">
-          <summary class="panel__toggle">History</summary>
-
-          <div class="panel__body">
-            <ul class="history" data-history></ul>
-
-            <p class="history__empty" data-history-empty>
-              Finish a focus session and it will show up here.
-            </p>
-
-            <button class="history__clear" type="button" data-history-clear>
-              Clear history
-            </button>
-          </div>
-        </details>
-      </div>
+          <label class="field">
+            <span class="field__name">Long break</span>
+            <input
+              class="field__input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              data-long-break-minutes
+            />
+            <span class="field__unit">min</span>
+          </label>
+        </div>
+      </details>
     </main>
+
+    <div class="scrim" data-history-scrim></div>
+
+    <aside
+      class="drawer"
+      id="history-drawer"
+      data-history-drawer
+      aria-label="History"
+      tabindex="-1"
+      inert
+    >
+      <h2 class="drawer__title">History</h2>
+
+      <ul class="history" data-history></ul>
+
+      <p class="history__empty" data-history-empty>
+        Finish a focus session and it will show up here.
+      </p>
+
+      <button class="history__clear" type="button" data-history-clear>
+        Clear history
+      </button>
+    </aside>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
