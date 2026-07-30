@@ -26,6 +26,9 @@ Author: Hannah
 - Vitest for unit tests
 - No dependencies at runtime
 
+Live at <https://hannah630.github.io/Pomodoro-Timer/>, built and published by
+GitHub Actions on every push to `main`.
+
 ## Getting started
 
 ```bash
