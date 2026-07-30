@@ -88,8 +88,10 @@
 }
 
 .button {
+  /* 48px keeps the tap target comfortable on a phone. */
   min-height: 48px;
   padding: 0 2rem;
+  -webkit-tap-highlight-color: transparent;
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: var(--step-label);
@@ -187,6 +189,7 @@
   text-transform: uppercase;
   list-style: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .settings__toggle::-webkit-details-marker {
