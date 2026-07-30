@@ -36,6 +36,13 @@ export interface TimerState {
 
 export const MS_PER_MINUTE = 60_000;
 
+/** Bounds every session duration is held to, wherever it comes from. */
+export const MIN_SESSION_MINUTES = 1;
+export const MAX_SESSION_MINUTES = 120;
+
+/** A cycle of zero rounds has no meaning and would divide by zero. */
+export const MIN_ROUNDS_PER_LONG_BREAK = 1;
+
 export const DEFAULT_SETTINGS: TimerSettings = {
   focusMinutes: 25,
   shortBreakMinutes: 5,

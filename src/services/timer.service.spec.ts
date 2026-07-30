@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_SETTINGS, MS_PER_MINUTE } from '../models/timer.model';
+import {
+  DEFAULT_SETTINGS,
+  MAX_SESSION_MINUTES,
+  MIN_SESSION_MINUTES,
+  MS_PER_MINUTE,
+} from '../models/timer.model';
 import { TimerService, type TimerServiceOptions } from './timer.service';
 
 const FOCUS_MS = DEFAULT_SETTINGS.focusMinutes * MS_PER_MINUTE;
@@ -266,6 +271,73 @@ describe('TimerService', () => {
       runToCompletion(service, advance);
 
       expect(service.getState().remainingMs).toBe(3 * MS_PER_MINUTE);
+    });
+  });
+
+  describe('settings validation', () => {
+    it('clamps a duration below the minimum', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ focusMinutes: 0 });
+
+      expect(service.getSettings().focusMinutes).toBe(MIN_SESSION_MINUTES);
+    });
+
+    it('clamps a negative duration', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ shortBreakMinutes: -5 });
+
+      expect(service.getSettings().shortBreakMinutes).toBe(MIN_SESSION_MINUTES);
+    });
+
+    it('clamps a duration above the maximum', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ longBreakMinutes: 999 });
+
+      expect(service.getSettings().longBreakMinutes).toBe(MAX_SESSION_MINUTES);
+    });
+
+    it('rounds a fractional duration to whole minutes', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ focusMinutes: 12.6 });
+
+      expect(service.getSettings().focusMinutes).toBe(13);
+    });
+
+    it('keeps the current value when handed something that is not a number', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ focusMinutes: Number.NaN });
+      service.updateSettings({
+        shortBreakMinutes: 'abc' as unknown as number,
+      });
+
+      expect(service.getSettings()).toMatchObject({
+        focusMinutes: DEFAULT_SETTINGS.focusMinutes,
+        shortBreakMinutes: DEFAULT_SETTINGS.shortBreakMinutes,
+      });
+    });
+
+    it('never lets a cycle be shorter than one round', () => {
+      const { service } = createTimer();
+
+      service.updateSettings({ roundsPerLongBreak: 0 });
+
+      expect(service.getSettings().roundsPerLongBreak).toBe(1);
+    });
+
+    it('validates settings supplied at construction, not just through the form', () => {
+      const { service } = createTimer({
+        settings: { focusMinutes: 999, shortBreakMinutes: Number.NaN },
+      });
+
+      expect(service.getSettings()).toMatchObject({
+        focusMinutes: MAX_SESSION_MINUTES,
+        shortBreakMinutes: DEFAULT_SETTINGS.shortBreakMinutes,
+      });
     });
   });
 

@@ -1,5 +1,8 @@
 import {
   DEFAULT_SETTINGS,
+  MAX_SESSION_MINUTES,
+  MIN_ROUNDS_PER_LONG_BREAK,
+  MIN_SESSION_MINUTES,
   MS_PER_MINUTE,
   type TimerMode,
   type TimerSettings,
@@ -12,7 +15,8 @@ export type CompleteListener = (finished: TimerMode, next: TimerMode) => void;
 export type Unsubscribe = () => void;
 
 export interface TimerServiceOptions {
-  settings?: TimerSettings;
+  /** Partial because restored settings may be incomplete or out of range. */
+  settings?: Partial<TimerSettings>;
   completedFocusCount?: number;
   /** Injected so tests can drive time without waiting for it to pass. */
   now?: () => number;
@@ -47,7 +51,7 @@ export class TimerService {
   private readonly completeListeners = new Set<CompleteListener>();
 
   constructor(options: TimerServiceOptions = {}) {
-    this.settings = options.settings ?? DEFAULT_SETTINGS;
+    this.settings = sanitizeSettings(options.settings ?? {}, DEFAULT_SETTINGS);
     this.completedFocusCount = options.completedFocusCount ?? 0;
     this.now = options.now ?? (() => Date.now());
     this.remainingMs = this.durationMsFor(this.mode);
@@ -140,7 +144,7 @@ export class TimerService {
    * takes effect the next time the affected mode starts.
    */
   updateSettings(patch: Partial<TimerSettings>): void {
-    this.settings = { ...this.settings, ...patch };
+    this.settings = sanitizeSettings(patch, this.settings);
 
     if (this.status === 'idle') {
       this.remainingMs = this.durationMsFor(this.mode);
@@ -227,4 +231,52 @@ export class TimerService {
     const state = this.getState();
     this.stateListeners.forEach((listener) => listener(state));
   }
+}
+
+/**
+ * Applies a patch on top of known-good settings, keeping the current value for
+ * anything missing, malformed or out of range.
+ *
+ * The service owns this rule rather than the settings form, because settings
+ * also arrive from storage on startup and that path never touches a form.
+ */
+function sanitizeSettings(
+  patch: Partial<TimerSettings>,
+  current: TimerSettings,
+): TimerSettings {
+  return {
+    focusMinutes: sanitizeMinutes(patch.focusMinutes, current.focusMinutes),
+    shortBreakMinutes: sanitizeMinutes(
+      patch.shortBreakMinutes,
+      current.shortBreakMinutes,
+    ),
+    longBreakMinutes: sanitizeMinutes(
+      patch.longBreakMinutes,
+      current.longBreakMinutes,
+    ),
+    roundsPerLongBreak: sanitizeRounds(
+      patch.roundsPerLongBreak,
+      current.roundsPerLongBreak,
+    ),
+  };
+}
+
+function sanitizeMinutes(value: number | undefined, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return clamp(Math.round(value), MIN_SESSION_MINUTES, MAX_SESSION_MINUTES);
+}
+
+function sanitizeRounds(value: number | undefined, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.max(MIN_ROUNDS_PER_LONG_BREAK, Math.round(value));
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
