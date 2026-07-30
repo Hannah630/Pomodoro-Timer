@@ -224,9 +224,33 @@
   line-height: 0.82;
 }
 
+/* Subordinate to the clock: precise when wanted, quiet the rest of the time. */
+.session__centiseconds {
+  color: var(--muted);
+  font-size: 0.34em;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.session__centiseconds::before {
+  content: '·';
+  margin: 0 0.15em;
+}
+
+.session__next {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* "Start long break" is a wide button; let it drop to its own line if need be. */
 .controls {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-s);
+  justify-content: center;
 }
 
 .button {

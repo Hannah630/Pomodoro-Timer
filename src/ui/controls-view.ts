@@ -1,12 +1,6 @@
 import type { TimerState, TimerStatus } from '../models/timer.model';
 import { queryElement } from './dom';
-
-/** The primary button does whatever the current status calls for. */
-const PRIMARY_LABELS: Record<TimerStatus, string> = {
-  idle: 'Start',
-  running: 'Pause',
-  paused: 'Resume',
-};
+import { formatPrimaryAction } from './labels';
 
 export interface ControlsHandlers {
   onStart(): void;
@@ -47,7 +41,7 @@ export function createControlsView(
     render(state) {
       status = state.status;
 
-      const label = PRIMARY_LABELS[status];
+      const label = formatPrimaryAction(state);
       if (primaryButton.textContent !== label) {
         primaryButton.textContent = label;
       }

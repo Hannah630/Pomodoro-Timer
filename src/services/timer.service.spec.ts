@@ -97,6 +97,43 @@ describe('TimerService', () => {
     });
   });
 
+  describe('what comes next', () => {
+    it('sees a short break ahead early in the cycle', () => {
+      const { service } = createTimer();
+
+      expect(service.getNextMode()).toBe('shortBreak');
+    });
+
+    it('sees the long break ahead on the session that earns it', () => {
+      const { service } = createTimer({ completedFocusCount: 3 });
+
+      expect(service.getNextMode()).toBe('longBreak');
+    });
+
+    it('sees a short break again once the cycle restarts', () => {
+      const { service } = createTimer({ completedFocusCount: 4 });
+
+      expect(service.getNextMode()).toBe('shortBreak');
+    });
+
+    it('sees focus ahead during any break', () => {
+      const { service, advance } = createTimer();
+
+      runToCompletion(service, advance);
+
+      expect(service.getNextMode()).toBe('focus');
+    });
+
+    it('agrees with the mode the transition actually picks', () => {
+      const { service, advance } = createTimer({ completedFocusCount: 3 });
+      const predicted = service.getNextMode();
+
+      runToCompletion(service, advance);
+
+      expect(service.getState().mode).toBe(predicted);
+    });
+  });
+
   describe('start, pause and resume', () => {
     it('switches to running on start', () => {
       const { service } = createTimer();

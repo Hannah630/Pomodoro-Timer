@@ -28,10 +28,13 @@ export interface TimerServiceOptions {
 }
 
 /**
- * How often a running timer recomputes the remaining time. Faster than once
- * per second so the displayed value flips close to the real second boundary.
+ * How often a running timer recomputes the remaining time.
+ *
+ * Roughly a frame, because the display carries hundredths of a second. The
+ * deadline is recomputed from the clock every time, so a tick arriving late
+ * costs nothing but a skipped frame.
  */
-export const TICK_INTERVAL_MS = 250;
+export const TICK_INTERVAL_MS = 16;
 
 /**
  * The pomodoro state machine.
@@ -89,6 +92,19 @@ export class TimerService {
    */
   getSessionDurationMs(): number {
     return this.sessionDurationMs;
+  }
+
+  /**
+   * What this session leads to, asked before it has finished.
+   *
+   * Same rule as the transition itself, applied to the count as it will be
+   * once the session lands, so the UI can say what is coming without
+   * restating the rule.
+   */
+  getNextMode(): TimerMode {
+    return this.mode === 'focus'
+      ? this.breakAfterFocus(this.completedFocusCount + 1)
+      : 'focus';
   }
 
   /**
@@ -217,12 +233,14 @@ export class TimerService {
   }
 
   private nextModeAfter(finished: TimerMode): TimerMode {
-    if (finished !== 'focus') {
-      return 'focus';
-    }
+    return finished === 'focus'
+      ? this.breakAfterFocus(this.completedFocusCount)
+      : 'focus';
+  }
 
-    const isLongBreakDue =
-      this.completedFocusCount % this.settings.roundsPerLongBreak === 0;
+  /** A long break lands on every whole cycle of finished focus sessions. */
+  private breakAfterFocus(focusCount: number): TimerMode {
+    const isLongBreakDue = focusCount % this.settings.roundsPerLongBreak === 0;
 
     return isLongBreakDue ? 'longBreak' : 'shortBreak';
   }

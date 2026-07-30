@@ -1,10 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TimerMode, TimerState } from '../models/timer.model';
-import { formatModeLabel } from './labels';
+import type {
+  TimerMode,
+  TimerState,
+  TimerStatus,
+} from '../models/timer.model';
+import {
+  formatModeLabel,
+  formatNextHint,
+  formatPrimaryAction,
+} from './labels';
 
-function state(mode: TimerMode, completedFocusCount: number): TimerState {
-  return { mode, status: 'idle', remainingMs: 0, completedFocusCount };
+function state(
+  mode: TimerMode,
+  completedFocusCount: number,
+  status: TimerStatus = 'idle',
+): TimerState {
+  return { mode, status, remainingMs: 0, completedFocusCount };
 }
 
 describe('formatModeLabel', () => {
@@ -22,12 +34,41 @@ describe('formatModeLabel', () => {
     expect(formatModeLabel(state('focus', 9), 4)).toBe('Focus · 2/4');
   });
 
-  it('leaves breaks unnumbered', () => {
-    expect(formatModeLabel(state('shortBreak', 2), 4)).toBe('Short break');
-    expect(formatModeLabel(state('longBreak', 4), 4)).toBe('Long break');
+  it('numbers a break by the session it follows', () => {
+    expect(formatModeLabel(state('shortBreak', 3), 4)).toBe('Short break · 3/4');
+    expect(formatModeLabel(state('longBreak', 4), 4)).toBe('Long break · 4/4');
+    expect(formatModeLabel(state('shortBreak', 5), 4)).toBe('Short break · 1/4');
+    expect(formatModeLabel(state('longBreak', 8), 4)).toBe('Long break · 4/4');
+  });
+
+  it('leaves a break unnumbered when nothing has been finished yet', () => {
+    expect(formatModeLabel(state('shortBreak', 0), 4)).toBe('Short break');
   });
 
   it('falls back to the plain name when the cycle length is invalid', () => {
     expect(formatModeLabel(state('focus', 2), 0)).toBe('Focus');
+  });
+});
+
+describe('formatNextHint', () => {
+  it('names what comes after this session', () => {
+    expect(formatNextHint('shortBreak')).toBe('Next: short break');
+    expect(formatNextHint('longBreak')).toBe('Next: long break');
+    expect(formatNextHint('focus')).toBe('Next: focus');
+  });
+});
+
+describe('formatPrimaryAction', () => {
+  it('names the session it is about to start', () => {
+    expect(formatPrimaryAction(state('focus', 0))).toBe('Start focus');
+    expect(formatPrimaryAction(state('shortBreak', 1))).toBe(
+      'Start short break',
+    );
+    expect(formatPrimaryAction(state('longBreak', 4))).toBe('Start long break');
+  });
+
+  it('offers to pause a running session and to resume a paused one', () => {
+    expect(formatPrimaryAction(state('focus', 0, 'running'))).toBe('Pause');
+    expect(formatPrimaryAction(state('focus', 0, 'paused'))).toBe('Resume');
   });
 });

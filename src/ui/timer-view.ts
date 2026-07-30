@@ -1,7 +1,7 @@
 import type { TimerMode, TimerState } from '../models/timer.model';
-import { formatTime } from '../utils/format';
+import { formatCountdown } from '../utils/format';
 import { queryElement } from './dom';
-import { formatModeLabel } from './labels';
+import { formatModeLabel, formatNextHint } from './labels';
 
 /** Each mode points the shared --mode token at its own accent. */
 const MODE_ACCENTS: Record<TimerMode, string> = {
@@ -13,12 +13,14 @@ const MODE_ACCENTS: Record<TimerMode, string> = {
 /** Must match the alert-wash animation in layout.css. */
 const ALERT_DURATION_MS = 900;
 
+export interface TimerViewContext {
+  readonly sessionDurationMs: number;
+  readonly roundsPerLongBreak: number;
+  readonly nextMode: TimerMode;
+}
+
 export interface TimerView {
-  render(
-    state: TimerState,
-    sessionDurationMs: number,
-    roundsPerLongBreak: number,
-  ): void;
+  render(state: TimerState, context: TimerViewContext): void;
 
   /**
    * A one-off wash of colour when a session ends. Always shown, so the app
@@ -28,12 +30,14 @@ export interface TimerView {
 }
 
 /**
- * Renders the mode label, the remaining time, and the page-wide progress
- * field. Contains no rules about time; it only displays what it is given.
+ * Renders the mode, the remaining time and the page-wide progress field.
+ * Contains no rules about time; it only displays what it is given.
  */
 export function createTimerView(root: ParentNode): TimerView {
   const modeElement = queryElement(root, '[data-mode]');
-  const timeElement = queryElement(root, '[data-time]');
+  const clockElement = queryElement(root, '[data-clock]');
+  const centisecondsElement = queryElement(root, '[data-centiseconds]');
+  const nextElement = queryElement(root, '[data-next]');
   const documentRoot = document.documentElement;
   const theme = documentRoot.style;
 
@@ -54,19 +58,35 @@ export function createTimerView(root: ParentNode): TimerView {
       }, ALERT_DURATION_MS);
     },
 
-    render(state, sessionDurationMs, roundsPerLongBreak) {
-      const time = formatTime(state.remainingMs);
+    render(state, context) {
+      const countdown = formatCountdown(state.remainingMs);
 
-      // The timer ticks four times a second but the display only changes
-      // once, so skip the write unless the text actually differs.
-      if (timeElement.textContent !== time) {
-        timeElement.textContent = time;
+      // The hundredths change on every frame; the clock changes once a second.
+      // Splitting them keeps the repaint on the small text most of the time.
+      centisecondsElement.textContent = countdown.centiseconds;
+
+      if (clockElement.textContent !== countdown.clock) {
+        clockElement.textContent = countdown.clock;
       }
 
-      modeElement.textContent = formatModeLabel(state, roundsPerLongBreak);
+      const mode = formatModeLabel(state, context.roundsPerLongBreak);
+      if (modeElement.textContent !== mode) {
+        modeElement.textContent = mode;
+      }
+
+      // Only a focus session leads somewhere worth announcing; a break always
+      // leads back to focus.
+      nextElement.hidden = state.mode !== 'focus';
+      const hint = formatNextHint(context.nextMode);
+      if (nextElement.textContent !== hint) {
+        nextElement.textContent = hint;
+      }
 
       theme.setProperty('--mode', MODE_ACCENTS[state.mode]);
-      theme.setProperty('--fill', String(fillOf(state.remainingMs, sessionDurationMs)));
+      theme.setProperty(
+        '--fill',
+        String(fillOf(state.remainingMs, context.sessionDurationMs)),
+      );
     },
   };
 }

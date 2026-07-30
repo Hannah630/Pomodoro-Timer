@@ -36,12 +36,30 @@ ui  →  services  →  models
 ## 模式切換規則
 
 ```
-focus 結束 → completedFocusCount + 1
+focus 結束 → completedFocusCount + 1        ← 先累加
            → (completedFocusCount % roundsPerLongBreak === 0) ? longBreak : shortBreak
-break 結束 → focus
+break 結束 → focus                          ← 休息不計入次數
 ```
 
-切換後 `status` 回到 `idle`，等使用者按 Start（MVP 不自動開始）。
+**先累加再判斷**，所以「剛好整除」等於「剛完成第 4 的倍數輪」。預設 4 輪一循環時：
+
+| 完成第幾輪 | 累計 | `% 4` | 下一個 |
+| --- | --- | --- | --- |
+| 1 / 2 / 3 | 1 / 2 / 3 | 1 / 2 / 3 | Short break |
+| 4 | 4 | 0 | **Long break** |
+| 5 | 5 | 1 | Short break |
+
+切換後 `status` 回到 `idle`，等使用者按 Start（不自動開始）。
+
+因為不自動開始，**這個轉場必須自己說清楚**，否則使用者只看到顏色變了卻沒在倒數：
+
+| 訊號 | 內容 |
+| --- | --- |
+| 主按鈕 | `Start short break` / `Start long break`，而不只是 `Start` |
+| 模式標籤 | 休息時也顯示週期位置（`Short break · 3/4`），focus 以自己編號、break 以它跟隨的那一輪編號 |
+| 專注中的預告 | `Next: long break`，由 `TimerService.getNextMode()` 提供 |
+
+`getNextMode()` 走的是同一套規則（`breakAfterFocus`），只是套用在「這一輪結束後」的次數上——**規則沒有在 UI 層被複寫第二遍**。
 
 ## 樣式系統
 
