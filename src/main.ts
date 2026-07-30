@@ -2,6 +2,7 @@ import './styles/base.css';
 import './styles/layout.css';
 
 import type { TimerSettings, TimerState } from './models/timer.model';
+import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
 import { queryElement } from './ui/dom';
@@ -18,7 +19,13 @@ import { createTimerView } from './ui/timer-view';
  */
 const app = queryElement(document, '#app');
 
-const timer = new TimerService();
+const storage = createStorageService(localStorage);
+const restored = storage.load();
+
+const timer = new TimerService({
+  settings: restored?.settings,
+  completedFocusCount: restored?.completedFocusCount,
+});
 const timerView = createTimerView(app);
 const roundsView = createRoundsView(app);
 const controlsView = createControlsView(app, {
@@ -43,9 +50,24 @@ function render(state: TimerState): void {
 function applySettings(patch: Partial<TimerSettings>): void {
   timer.updateSettings(patch);
   settingsView.render(timer.getSettings());
+  persist();
+}
+
+/**
+ * Saving on every state change would write four times a second. The two
+ * persisted values only move when a session finishes or the settings change,
+ * so those are the only moments worth writing.
+ */
+function persist(): void {
+  storage.save({
+    settings: timer.getSettings(),
+    completedFocusCount: timer.getState().completedFocusCount,
+  });
 }
 
 timer.subscribe(render);
+timer.onComplete(() => persist());
+
 render(timer.getState());
 settingsView.render(timer.getSettings());
 
