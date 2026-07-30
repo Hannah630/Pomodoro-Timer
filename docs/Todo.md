@@ -14,12 +14,12 @@
 
 ## Stage 1 — Model 與計時核心　`feat/timer-core`
 
-- [ ] `src/models/timer.model.ts`（型別 + `DEFAULT_SETTINGS`）
-- [ ] `src/utils/format.ts`（`formatTime`）
-- [ ] `src/services/timer.service.ts`（deadline 法狀態機、注入 `now()`）
-- [ ] `src/services/timer.service.spec.ts`
-- [ ] 移除 `vite.config.ts` 的 `passWithNoTests`
-- [ ] 驗收：所有單元測試通過
+- [x] `src/models/timer.model.ts`（型別 + `DEFAULT_SETTINGS`）
+- [x] `src/utils/format.ts` + `format.spec.ts`（`formatTime`，秒數無條件進位）
+- [x] `src/services/timer.service.ts`（deadline 法狀態機、注入 `now()`）
+- [x] `src/services/timer.service.spec.ts`
+- [x] 移除 `vite.config.ts` 的 `passWithNoTests`
+- [x] 驗收：26 個單元測試全部通過，`npm run build` 無錯
 
 ## Stage 2 — 基本 UI 接線　`feat/timer-ui`
 
