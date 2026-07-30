@@ -9,9 +9,9 @@ import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
 import { queryElement } from './ui/dom';
+import { createDrawerGroup } from './ui/drawer';
 import { createHistoryView } from './ui/history-view';
 import { MODE_LABELS } from './ui/labels';
-import { createRoundsView } from './ui/rounds-view';
 import { createSettingsView } from './ui/settings-view';
 import { createTimerView } from './ui/timer-view';
 import { createTitleView } from './ui/title-view';
@@ -36,11 +36,10 @@ const historyStorage = createHistoryStorage(localStorage);
 const session = createSessionService({ history: historyStorage.load() });
 
 const timerView = createTimerView(app);
-const roundsView = createRoundsView(app);
 const titleView = createTitleView(app, {
   onTitleChange: (raw) => applyTitle(raw),
 });
-// The drawer sits outside #app so it can span the viewport, not the layout.
+// The drawers sit outside #app so they can span the viewport, not the layout.
 const historyView = createHistoryView(document, {
   onClear: () => {
     session.clearHistory();
@@ -58,13 +57,27 @@ const controlsView = createControlsView(app, {
   onPause: () => timer.pause(),
   onReset: () => timer.reset(),
 });
-const settingsView = createSettingsView(app, {
+const settingsView = createSettingsView(document, {
   onChange: (patch) => applySettings(patch),
+});
+
+const drawers = createDrawerGroup(queryElement(document, '[data-scrim]'));
+
+drawers.add({
+  toggle: queryElement(document, '[data-settings-toggle]'),
+  panel: queryElement(document, '[data-settings-drawer]'),
+  openClass: 'is-settings-open',
+});
+
+drawers.add({
+  toggle: queryElement(document, '[data-history-toggle]'),
+  panel: queryElement(document, '[data-history-drawer]'),
+  openClass: 'is-history-open',
+  onClose: () => historyView.resetConfirm(),
 });
 
 function render(state: TimerState): void {
   timerView.render(state, timer.getSessionDurationMs());
-  roundsView.render(state, timer.getSettings().roundsPerLongBreak);
   titleView.render(state.mode);
   controlsView.render(state);
 }

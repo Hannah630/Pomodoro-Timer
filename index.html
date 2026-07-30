@@ -9,15 +9,27 @@
   <body>
     <div class="level" aria-hidden="true"></div>
 
-    <button
-      class="drawer-toggle"
-      type="button"
-      data-history-toggle
-      aria-expanded="false"
-      aria-controls="history-drawer"
-    >
-      History
-    </button>
+    <div class="toolbar">
+      <button
+        class="drawer-toggle"
+        type="button"
+        data-settings-toggle
+        aria-expanded="false"
+        aria-controls="settings-drawer"
+      >
+        Settings
+      </button>
+
+      <button
+        class="drawer-toggle"
+        type="button"
+        data-history-toggle
+        aria-expanded="false"
+        aria-controls="history-drawer"
+      >
+        History
+      </button>
+    </div>
 
     <main class="app" id="app">
       <section class="session">
@@ -47,60 +59,62 @@
             placeholder="What are you working on?"
           />
         </div>
-
-        <div class="rounds">
-          <div class="rounds__dots" data-dots aria-hidden="true"></div>
-          <p class="rounds__count" data-count>0 sessions</p>
-        </div>
       </section>
-
-      <details class="panel">
-        <summary class="panel__toggle">Settings</summary>
-
-        <div class="panel__body fields">
-          <label class="field">
-            <span class="field__name">Focus</span>
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              step="1"
-              data-focus-minutes
-            />
-            <span class="field__unit">min</span>
-          </label>
-
-          <label class="field">
-            <span class="field__name">Short break</span>
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              step="1"
-              data-short-break-minutes
-            />
-            <span class="field__unit">min</span>
-          </label>
-
-          <label class="field">
-            <span class="field__name">Long break</span>
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              step="1"
-              data-long-break-minutes
-            />
-            <span class="field__unit">min</span>
-          </label>
-        </div>
-      </details>
     </main>
 
-    <div class="scrim" data-history-scrim></div>
+    <div class="scrim" data-scrim></div>
 
     <aside
-      class="drawer"
+      class="drawer drawer--settings"
+      id="settings-drawer"
+      data-settings-drawer
+      aria-label="Settings"
+      tabindex="-1"
+      inert
+    >
+      <h2 class="drawer__title">Settings</h2>
+
+      <div class="fields">
+        <label class="field">
+          <span class="field__name">Focus</span>
+          <input
+            class="field__input"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            data-focus-minutes
+          />
+          <span class="field__unit">min</span>
+        </label>
+
+        <label class="field">
+          <span class="field__name">Short break</span>
+          <input
+            class="field__input"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            data-short-break-minutes
+          />
+          <span class="field__unit">min</span>
+        </label>
+
+        <label class="field">
+          <span class="field__name">Long break</span>
+          <input
+            class="field__input"
+            type="number"
+            inputmode="numeric"
+            step="1"
+            data-long-break-minutes
+          />
+          <span class="field__unit">min</span>
+        </label>
+      </div>
+    </aside>
+
+    <aside
+      class="drawer drawer--history"
       id="history-drawer"
       data-history-drawer
       aria-label="History"
