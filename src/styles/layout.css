@@ -17,7 +17,6 @@
   height: calc(var(--fill) * 100%);
   background: var(--field);
   border-top: var(--edge-width) solid var(--mode);
-  transition: height var(--transition-fill);
   pointer-events: none;
 }
 
@@ -62,6 +61,71 @@
   align-self: center;
   gap: var(--space-l);
   text-align: center;
+}
+
+/**
+ * A wind-up kitchen timer: one revolution is the whole session. The arc is
+ * the time left and the hand sits at its leading edge, so both shrink back to
+ * the top together. Everything here is driven by --fill; no script involved.
+ */
+.dial {
+  position: relative;
+  width: var(--dial-size);
+  height: var(--dial-size);
+  border-radius: 50%;
+}
+
+/* Twelve marks around the rim, as on a clock face. */
+.dial::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    var(--line) 0deg 0.7deg,
+    transparent 0.7deg 30deg
+  );
+  -webkit-mask: radial-gradient(closest-side, transparent 84%, #000 84%);
+  mask: radial-gradient(closest-side, transparent 84%, #000 84%);
+}
+
+/* The time still to run. */
+.dial::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent calc((1 - var(--fill)) * 360deg),
+    var(--mode) 0
+  );
+  -webkit-mask: radial-gradient(closest-side, transparent 89%, #000 89%);
+  mask: radial-gradient(closest-side, transparent 89%, #000 89%);
+}
+
+.dial__hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: var(--dial-hand-width);
+  height: 38%;
+  border-radius: var(--dial-hand-width);
+  background: var(--mode);
+  transform: translateX(-50%) rotate(calc((1 - var(--fill)) * 360deg));
+  transform-origin: bottom center;
+}
+
+/* The cap over the spindle. */
+.dial__hand::after {
+  content: '';
+  position: absolute;
+  bottom: calc(var(--dot-size) / -2);
+  left: 50%;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  background: var(--mode);
+  transform: translateX(-50%);
 }
 
 .session__mode {
@@ -257,8 +321,17 @@
   font-size: var(--step-label);
 }
 
+/* Short viewports, a landscape phone above all, need the stack tightened. */
+@media (max-height: 34rem) {
+  :root {
+    --space-l: 0.75rem;
+    --dial-size: clamp(5rem, 22vh, 9rem);
+    --step-clock: clamp(2.5rem, 14vh, 4rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .level,
+  :root,
   .button,
   .rounds__dot {
     transition: none;
