@@ -31,11 +31,11 @@ export function createNotificationService(): NotificationService {
 
   return {
     enable() {
-      audio ??= new AudioContext();
+      audio ??= createAudioContext();
 
       // An AudioContext created outside a gesture starts suspended. Resuming
       // it here is the unlock the autoplay policy asks for.
-      void audio.resume().catch(() => undefined);
+      void audio?.resume().catch(() => undefined);
 
       if (canNotify() && Notification.permission === 'default') {
         void Notification.requestPermission().catch(() => undefined);
@@ -47,6 +47,23 @@ export function createNotificationService(): NotificationService {
       showNotification(title, body);
     },
   };
+}
+
+/**
+ * Older browsers only carry the prefixed constructor, and referring to a
+ * global that is not there throws rather than reading as undefined. A missing
+ * one means no chime, never a broken start.
+ */
+function createAudioContext(): AudioContext | null {
+  if (typeof AudioContext === 'undefined') {
+    return null;
+  }
+
+  try {
+    return new AudioContext();
+  } catch {
+    return null;
+  }
 }
 
 function playChime(audio: AudioContext | null): void {

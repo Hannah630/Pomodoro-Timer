@@ -4,7 +4,11 @@ import {
   MS_PER_DAY,
   type SessionRecord,
 } from '../models/session.model';
-import type { KeyValueStorage } from './key-value-storage';
+import {
+  readItem,
+  writeItem,
+  type KeyValueStorage,
+} from './key-value-storage';
 
 /**
  * A second key, kept apart from the settings save on purpose.
@@ -35,7 +39,7 @@ export function createHistoryStorage(
 ): HistoryStorage {
   return {
     load() {
-      const raw = storage.getItem(HISTORY_STORAGE_KEY);
+      const raw = readItem(storage, HISTORY_STORAGE_KEY);
 
       if (raw === null) {
         return [];
@@ -60,17 +64,14 @@ export function createHistoryStorage(
     },
 
     save(records) {
-      const payload = JSON.stringify({
-        version: HISTORY_STORAGE_VERSION,
-        records: records.slice(0, MAX_HISTORY_RECORDS),
-      });
-
-      try {
-        storage.setItem(HISTORY_STORAGE_KEY, payload);
-      } catch {
-        // Storage can be full, or blocked entirely in private browsing.
-        // Losing a save is not a reason to break a running timer.
-      }
+      writeItem(
+        storage,
+        HISTORY_STORAGE_KEY,
+        JSON.stringify({
+          version: HISTORY_STORAGE_VERSION,
+          records: records.slice(0, MAX_HISTORY_RECORDS),
+        }),
+      );
     },
   };
 }

@@ -2,7 +2,11 @@ import {
   SECONDS_PER_MINUTE,
   type TimerSettings,
 } from '../models/timer.model';
-import type { KeyValueStorage } from './key-value-storage';
+import {
+  readItem,
+  writeItem,
+  type KeyValueStorage,
+} from './key-value-storage';
 
 export const STORAGE_KEY = 'pomodoro-timer';
 
@@ -43,7 +47,7 @@ export function createStorageService(
 ): StorageService {
   return {
     load() {
-      const raw = storage.getItem(STORAGE_KEY);
+      const raw = readItem(storage, STORAGE_KEY);
 
       if (raw === null) {
         return null;
@@ -74,14 +78,11 @@ export function createStorageService(
     },
 
     save(state) {
-      const payload = JSON.stringify({ version: STORAGE_VERSION, ...state });
-
-      try {
-        storage.setItem(STORAGE_KEY, payload);
-      } catch {
-        // Storage can be full, or blocked entirely in private browsing.
-        // Losing a save is not a reason to break a running timer.
-      }
+      writeItem(
+        storage,
+        STORAGE_KEY,
+        JSON.stringify({ version: STORAGE_VERSION, ...state }),
+      );
     },
   };
 }

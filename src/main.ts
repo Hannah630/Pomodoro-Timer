@@ -71,17 +71,25 @@ const historyView = createHistoryView(document, {
 const notifications = createNotificationService();
 const controlsView = createControlsView(app, {
   onStart: () => {
-    // Audio and notification permission both have to originate from a user
-    // gesture, and so does fullscreen. This click is the first one the app is
-    // guaranteed to get.
-    notifications.enable();
     pausedByLeaving = false;
 
-    if (timer.getState().mode === 'focus') {
-      enterFullscreen();
-    }
-
+    // Start first. Everything below is an enhancement, and a browser that
+    // refuses one of them must not be able to stop the timer — which is what
+    // happened on iOS, where requesting fullscreen on an ordinary element
+    // threw and took the rest of this handler with it.
     timer.start();
+
+    // Still inside the click, which is what audio, notification permission
+    // and fullscreen all require of their gesture.
+    try {
+      notifications.enable();
+
+      if (timer.getState().mode === 'focus') {
+        enterFullscreen();
+      }
+    } catch {
+      // A capability the browser will not give us is not worth a broken start.
+    }
   },
   onPause: () => timer.pause(),
   onReset: () => {

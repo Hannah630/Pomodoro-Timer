@@ -126,6 +126,23 @@ describe('history storage', () => {
     });
   });
 
+  describe('when the browser blocks storage outright', () => {
+    it('starts empty rather than throwing on read', () => {
+      const storage = createHistoryStorage(
+        {
+          getItem: () => {
+            throw new Error('SecurityError');
+          },
+          setItem: () => undefined,
+        },
+        () => NOW,
+      );
+
+      expect(() => storage.load()).not.toThrow();
+      expect(storage.load()).toEqual([]);
+    });
+  });
+
   describe('save', () => {
     it('never writes more than the cap', () => {
       const storage = createStorage();
