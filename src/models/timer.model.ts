@@ -16,11 +16,17 @@ export type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
  */
 export type TimerStatus = 'idle' | 'running' | 'paused';
 
-/** User-configurable durations. Minutes, because that is what the UI edits. */
+/**
+ * User-configurable durations, in seconds.
+ *
+ * One number per duration rather than a minutes and seconds pair: the split
+ * belongs to the form, and storing it would mean validating two fields that
+ * can disagree with each other.
+ */
 export interface TimerSettings {
-  readonly focusMinutes: number;
-  readonly shortBreakMinutes: number;
-  readonly longBreakMinutes: number;
+  readonly focusSeconds: number;
+  readonly shortBreakSeconds: number;
+  readonly longBreakSeconds: number;
   /** How many focus sessions to finish before taking a long break. */
   readonly roundsPerLongBreak: number;
 }
@@ -34,18 +40,20 @@ export interface TimerState {
   readonly completedFocusCount: number;
 }
 
-export const MS_PER_MINUTE = 60_000;
+export const MS_PER_SECOND = 1_000;
+export const SECONDS_PER_MINUTE = 60;
+export const MS_PER_MINUTE = MS_PER_SECOND * SECONDS_PER_MINUTE;
 
 /** Bounds every session duration is held to, wherever it comes from. */
-export const MIN_SESSION_MINUTES = 1;
-export const MAX_SESSION_MINUTES = 120;
+export const MIN_SESSION_SECONDS = 5;
+export const MAX_SESSION_SECONDS = 120 * SECONDS_PER_MINUTE;
 
 /** A cycle of zero rounds has no meaning and would divide by zero. */
 export const MIN_ROUNDS_PER_LONG_BREAK = 1;
 
 export const DEFAULT_SETTINGS: TimerSettings = {
-  focusMinutes: 25,
-  shortBreakMinutes: 5,
-  longBreakMinutes: 15,
+  focusSeconds: 25 * SECONDS_PER_MINUTE,
+  shortBreakSeconds: 5 * SECONDS_PER_MINUTE,
+  longBreakSeconds: 15 * SECONDS_PER_MINUTE,
   roundsPerLongBreak: 4,
 };

@@ -1,29 +1,29 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseMinutes } from './settings-view';
+import { parseCount } from './settings-view';
 
-describe('parseMinutes', () => {
+describe('parseCount', () => {
   it('reads a plain number', () => {
-    expect(parseMinutes('25')).toBe(25);
+    expect(parseCount('25')).toBe(25);
   });
 
   it('ignores surrounding whitespace', () => {
-    expect(parseMinutes('  10 ')).toBe(10);
+    expect(parseCount('  10 ')).toBe(10);
   });
 
   it('returns null for an empty field', () => {
-    expect(parseMinutes('')).toBeNull();
-    expect(parseMinutes('   ')).toBeNull();
+    expect(parseCount('')).toBeNull();
+    expect(parseCount('   ')).toBeNull();
   });
 
   it('returns null for text that is not a number', () => {
-    expect(parseMinutes('abc')).toBeNull();
-    expect(parseMinutes('12abc')).toBeNull();
+    expect(parseCount('abc')).toBeNull();
+    expect(parseCount('12abc')).toBeNull();
   });
 
   it('passes out-of-range numbers through for the service to clamp', () => {
-    expect(parseMinutes('0')).toBe(0);
-    expect(parseMinutes('-5')).toBe(-5);
-    expect(parseMinutes('999')).toBe(999);
+    expect(parseCount('0')).toBe(0);
+    expect(parseCount('-5')).toBe(-5);
+    expect(parseCount('999')).toBe(999);
   });
 });
