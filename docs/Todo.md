@@ -39,7 +39,10 @@
 
 ## Stage 4 — 設定面板　`feat/settings`
 
-- [ ] `src/ui/settings-view.ts`（含輸入驗證 clamp 1–120）
+- [x] `src/ui/settings-view.ts` + spec（解析輸入文字）
+- [x] `TimerService` 建構子與 `updateSettings` 統一做範圍與整數驗證
+- [x] `MIN_SESSION_MINUTES` / `MAX_SESSION_MINUTES` / `MIN_ROUNDS_PER_LONG_BREAK`
+- [x] `<details>` 收合面板與 `.field` 樣式
 - [ ] 驗收：改成 1 分鐘後 Reset 從 01:00 開始；輸入 0 / -5 / "abc" 不會壞
 
 ## Stage 5 — 本地儲存　`feat/persistence`
