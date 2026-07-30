@@ -68,6 +68,27 @@
 - [ ] 驗收：375px 與 1440px 皆正常；`npm run build` 成功；打上 `v0.1` tag
 - [ ] README 截圖（我沒有瀏覽器工具，需要你自己截）
 
+## Stage 8 — 類比錶盤　`feat/clock-dial`
+
+- [x] `.dial` 刻度、剩餘弧、指針，全部由 `--fill` 驅動，零新增 TypeScript
+- [x] `@property --fill` 註冊成 `<number>`，讓倒數變化可以被 transition
+- [x] `.level` 色場降為背景氛圍（12% → 7%，亮線 2px → 1px）
+- [x] 短視窗 media query（`max-height: 34rem`）收緊間距與尺寸
+- [ ] 驗收：指針隨倒數轉、切模式換色、375 / 740×360 / 1440 三個尺寸不破版
+
+## Stage 9 — 標題欄位　`feat/session-title`
+
+- [ ] `src/ui/title-view.ts`（`maxlength="20"`，只在專注時段顯示）
+- [ ] `src/services/session.service.ts`（先只管標題）
+- [ ] 驗收：上限 20 字、休息時隱藏、切回專注保留上次輸入
+
+## Stage 10 — 歷史記錄　`feat/session-history`
+
+- [ ] `src/models/session.model.ts`（`SessionRecord`）
+- [ ] `src/services/history-storage.ts`（第二個 localStorage key）
+- [ ] `src/ui/history-view.ts`（收合面板、Clear history）
+- [ ] 驗收：完成後出現在最上方、重整後還在、存亂碼不白畫面、超過 100 筆丟最舊
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑

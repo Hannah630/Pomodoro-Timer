@@ -13,6 +13,7 @@ Author: Hannah
 - Focus, short break and long break sessions, 25 / 5 / 15 minutes by default
 - Start, pause, resume and reset
 - Counts finished focus sessions, and takes a long break after every fourth
+- An analog dial: one revolution is the session, the hand tracks what is left
 - Chimes, washes the screen and raises a desktop notification when time is up
 - Durations are editable and held to whole minutes between 1 and 120
 - Settings and the session count survive a reload
