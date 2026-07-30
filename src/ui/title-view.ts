@@ -26,6 +26,7 @@ export function createTitleView(
   root: ParentNode,
   handlers: TitleHandlers,
 ): TitleView {
+  const field = queryElement(root, '[data-title-field]');
   const input = queryElement<HTMLInputElement>(root, '[data-title]');
 
   // Sourced from the service so the limit is stated in exactly one place.
@@ -37,7 +38,8 @@ export function createTitleView(
 
   return {
     render(mode) {
-      input.hidden = mode !== 'focus';
+      // Hide the label with the field, or a lone "Task" heading is left over.
+      field.hidden = mode !== 'focus';
     },
 
     setValue(title) {
