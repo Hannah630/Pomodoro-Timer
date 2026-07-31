@@ -2,6 +2,7 @@ import './styles/base.css';
 import './styles/layout.css';
 
 import type { TimerSettings, TimerState } from './models/timer.model';
+import { createFrameScheduler } from './services/frame-scheduler';
 import { createHistoryStorage } from './services/history-storage';
 import { createNotificationService } from './services/notification.service';
 import { createSessionService } from './services/session.service';
@@ -40,6 +41,9 @@ const restored = storage.load();
 const timer = new TimerService({
   settings: restored?.settings,
   completedFocusCount: restored?.completedFocusCount,
+  // The browser gets the frame-based scheduler; the service's own default is
+  // a plain interval so that it stays constructible outside one.
+  scheduler: createFrameScheduler(),
 });
 const historyStorage = createHistoryStorage(localStorage);
 const session = createSessionService({
@@ -129,12 +133,52 @@ watchForShortcuts(
   () => drawers.isAnyOpen(),
 );
 
+/**
+ * The state the event-driven views were last rendered for.
+ *
+ * Null until the first render, which is also the only time they are drawn
+ * without anything having changed.
+ */
+let renderedFor: TimerState | null = null;
+
+/**
+ * Renders a state change.
+ *
+ * Two speeds. The time and the tab title change on every tick, sixty times a
+ * second, because that is what a countdown with hundredths in it means. The
+ * mode buttons, the task field and the button labels change when the mode,
+ * the status or the count does — which is a handful of times an hour.
+ *
+ * Drawing all five at frame rate is what this replaces: modes-view alone was
+ * calling setAttribute on two buttons sixty times a second to write the value
+ * that was already there.
+ *
+ * The comparison lives here rather than inside each view: main is the wiring
+ * layer and this is a wiring question. Pushed down, it would be the same
+ * three lines in three places, each free to fall out of step.
+ */
 function render(state: TimerState): void {
   timerView.render(state, {
     sessionDurationMs: timer.getSessionDurationMs(),
     pausedByLeaving,
   });
   documentTitleView.render(state);
+
+  // completedFocusCount cannot move without the mode moving too, so it is
+  // redundant today. It is compared anyway: it is part of the state these
+  // views are given, and leaving it out would make this a line to re-check
+  // every time one of them starts reading something new.
+  const unchanged =
+    renderedFor !== null &&
+    renderedFor.mode === state.mode &&
+    renderedFor.status === state.status &&
+    renderedFor.completedFocusCount === state.completedFocusCount;
+
+  if (unchanged) {
+    return;
+  }
+
+  renderedFor = state;
   modesView.render(state);
   titleView.render(state.mode);
   controlsView.render(state);

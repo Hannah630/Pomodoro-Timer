@@ -221,6 +221,17 @@
 - [x] `DrawerGroup.isAnyOpen()`：抽屜是模態，開著時全域快捷鍵不作用
 - [ ] 驗收：見手動驗收清單
 
+### 19.4 排程與渲染　`perf/tick-scheduling`
+
+- [x] `tick-scheduler.ts`：`TickScheduler` 介面 + 預設的 interval 實作
+- [x] `frame-scheduler.ts`：rAF + 1 秒 interval 混合，`main.ts` 注入
+- [x] **既有 119 個測試一行都沒改**——預設值選對了才會這樣
+- [x] `startInterval` / `stopInterval` 更名為 `startTicking` / `stopTicking`
+      （它們已經不是 interval 了）
+- [x] `main.ts` 的 `render()` 分成「每幀」與「有變才畫」兩組
+- [x] `format.ts` 不再自己宣告一份 `SECONDS_PER_MINUTE`
+- [ ] 驗收：見手動驗收清單，特別是「背景分頁歸零仍會通知」那一項
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑

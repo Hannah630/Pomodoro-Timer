@@ -1,6 +1,7 @@
+import { SECONDS_PER_MINUTE } from '../models/timer.model';
+
 const MS_PER_CENTISECOND = 10;
 const CENTISECONDS_PER_SECOND = 100;
-const SECONDS_PER_MINUTE = 60;
 
 export interface Countdown {
   /** Minutes and seconds, "24:37". */

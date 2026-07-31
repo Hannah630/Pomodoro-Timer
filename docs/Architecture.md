@@ -37,6 +37,28 @@ ui  →  services  →  models
 法讓準度與頻率無關——而是因為顯示帶了百分秒，一秒跳四格的話小字會用肉眼看得見
 的方式抖動。
 
+### tick 由誰來敲
+
+頻率密了之後，「誰來敲」變成一個要選的問題，而它由 `TickScheduler` 注入，理由
+與 `now()` 相同：
+
+| 實作 | 誰用 | 內容 |
+| --- | --- | --- |
+| `createIntervalScheduler()` | `TimerService` 的**預設** | 單純的 `setInterval`，node 也有，所以測試不必 stub 任何東西 |
+| `createFrameScheduler()` | `main.ts` 注入 | `requestAnimationFrame` + 1 秒的 `setInterval`，兩個一起 |
+
+瀏覽器版**必須是兩個時鐘**：
+
+- 只有 rAF 是錯的。分頁隱藏時 rAF 完全停止，在背景跑完的那一段不會響、不會發
+  通知，要等使用者切回來才補——而「人不在的時候通知他」正是通知存在的理由。
+- 只有 interval 是浪費。分頁沒人在看的時候，沒有人需要那 60fps。
+
+所以 rAF 負責看得見的時候的流暢度，底下那個 1 秒的 interval 負責「這段結束了」
+仍然有人發現。`tick()` 是冪等的（每次從 deadline 重算），兩個來源同時敲只多花
+一次減法。
+
+隱藏時的成本從每秒 60 次降到每秒 1 次——而且那 1 次還會被瀏覽器再節流。
+
 ## 模式切換規則
 
 ```
@@ -296,4 +318,21 @@ Markdown 表格，而一個中文字是一個字元、兩欄寬，`docs/` 裡的
 | `new Notification()` 在部分瀏覽器直接丟例外 | Chrome on Android 只允許透過 service worker 發通知，所以建構子包 try/catch |
 | 通知被拒絕或使用者靜音 | 每次結束一律播放一次畫面色彩淡出（`.level::after`），不依賴任何權限 |
 | Notification 需要 secure context | `localhost` 與 https 可用，`file://` 不可 — 這也是不採用「無建置純 HTML」的實際理由 |
-| DOM 更新過於頻繁 | tick 為 16ms，但寫入分兩種：小字（百分秒）每幀寫，大字（`mm:ss`）比對過才寫。同一個字串重寫一次雖然不會重繪，比對仍然省下每秒 59 次的無謂寫入 |
+| DOM 更新過於頻繁 | 見下節「兩種更新速度」 |
+
+## 兩種更新速度
+
+`main.ts` 的 `render()` 把 view 分成兩組，因為它們的輸入根本不是同一個節奏：
+
+| 速度 | 誰 | 為什麼 |
+| --- | --- | --- |
+| 每一幀 | `timer-view`、`document-title-view` | 倒數本來就是每幀在變 |
+| 有變才畫 | `modes-view`、`title-view`、`controls-view` | 模式、狀態、完成次數一小時才動幾次 |
+
+五個 view 全部每幀畫的話，`modes-view` 會對兩顆按鈕每秒呼叫 60 次
+`setAttribute`，寫的還是同一個值。
+
+即使是每幀那一組，內部仍然再比對一次：`timer-view` 只在 `mm:ss` 真的變了才寫
+大字（小字每幀寫，它本來就每幀在變），`document-title-view` 記住上次寫進
+`document.title` 的字串。**比對放在 `main.ts`**——它是接線層，這是接線問題；
+下放到各 view 就會變成三份一模一樣、而且各自有機會走鐘的比較邏輯。

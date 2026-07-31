@@ -8,6 +8,7 @@ import {
   type TimerState,
   type TimerStatus,
 } from '../models/timer.model';
+import { createIntervalScheduler, type TickScheduler } from './tick-scheduler';
 
 export type StateListener = (state: TimerState) => void;
 export type CompleteListener = (
@@ -24,16 +25,15 @@ export interface TimerServiceOptions {
   completedFocusCount?: number;
   /** Injected so tests can drive time without waiting for it to pass. */
   now?: () => number;
+  /**
+   * What asks the timer to recompute itself.
+   *
+   * Defaults to a plain interval, which works in node as well as in a
+   * browser, so a spec can construct this class without stubbing anything.
+   * The app supplies a frame-based one instead.
+   */
+  scheduler?: TickScheduler;
 }
-
-/**
- * How often a running timer recomputes the remaining time.
- *
- * Roughly a frame, because the display carries hundredths of a second. The
- * deadline is recomputed from the clock every time, so a tick arriving late
- * costs nothing but a skipped frame.
- */
-export const TICK_INTERVAL_MS = 16;
 
 /**
  * The pomodoro state machine.
@@ -59,8 +59,8 @@ export class TimerService {
 
   /** Timestamp the current run finishes at; null unless running. */
   private endAt: number | null = null;
-  private intervalId: ReturnType<typeof setInterval> | null = null;
 
+  private readonly scheduler: TickScheduler;
   private readonly now: () => number;
   private readonly stateListeners = new Set<StateListener>();
   private readonly completeListeners = new Set<CompleteListener>();
@@ -69,6 +69,7 @@ export class TimerService {
     this.settings = sanitizeSettings(options.settings ?? {}, DEFAULT_SETTINGS);
     this.completedFocusCount = options.completedFocusCount ?? 0;
     this.now = options.now ?? (() => Date.now());
+    this.scheduler = options.scheduler ?? createIntervalScheduler();
     this.beginSession(this.mode);
   }
 
@@ -105,7 +106,7 @@ export class TimerService {
       return;
     }
 
-    this.stopInterval();
+    this.stopTicking();
     this.status = 'idle';
     this.endAt = null;
     this.beginSession(mode);
@@ -123,7 +124,7 @@ export class TimerService {
 
     this.endAt = this.now() + this.remainingMs;
     this.status = 'running';
-    this.startInterval();
+    this.startTicking();
     this.emitState();
   }
 
@@ -135,13 +136,13 @@ export class TimerService {
     this.remainingMs = Math.max(0, this.endAt - this.now());
     this.status = 'paused';
     this.endAt = null;
-    this.stopInterval();
+    this.stopTicking();
     this.emitState();
   }
 
   /** Returns to the start of the current mode without changing the count. */
   reset(): void {
-    this.stopInterval();
+    this.stopTicking();
     this.status = 'idle';
     this.endAt = null;
     this.beginSession(this.mode);
@@ -152,10 +153,11 @@ export class TimerService {
    * Recomputes the remaining time from the deadline.
    *
    * The value is always derived from `endAt - now()` and never accumulated,
-   * so a late interval — a throttled background tab, a busy main thread —
-   * cannot make the countdown drift.
+   * so a late tick — a throttled background tab, a busy main thread — cannot
+   * make the countdown drift. It is idempotent for the same reason, which is
+   * what lets the scheduler drive it from two clocks at once.
    *
-   * Public because the interval is not the only caller: the UI also ticks
+   * Public because the scheduler is not the only caller: the UI also ticks
    * once when the tab becomes visible again, to refresh a stale display.
    */
   tick(): void {
@@ -201,16 +203,16 @@ export class TimerService {
     };
   }
 
-  /** Releases the interval and listeners. */
+  /** Releases the scheduler and the listeners. */
   dispose(): void {
-    this.stopInterval();
+    this.stopTicking();
     this.stateListeners.clear();
     this.completeListeners.clear();
   }
 
   /** Handles a session reaching zero: count it, then move to the next mode. */
   private complete(): void {
-    this.stopInterval();
+    this.stopTicking();
 
     const finished = this.mode;
     const finishedDurationMs = this.sessionDurationMs;
@@ -250,16 +252,12 @@ export class TimerService {
     }
   }
 
-  private startInterval(): void {
-    this.stopInterval();
-    this.intervalId = setInterval(() => this.tick(), TICK_INTERVAL_MS);
+  private startTicking(): void {
+    this.scheduler.start(() => this.tick());
   }
 
-  private stopInterval(): void {
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
+  private stopTicking(): void {
+    this.scheduler.stop();
   }
 
   private emitState(): void {
