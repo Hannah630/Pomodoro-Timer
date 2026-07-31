@@ -15,8 +15,15 @@ export interface AnnouncerView {
  *
  * The same text is written twice in a row when two sessions of the same kind
  * end back to back, and a live region ignores an unchanged value — so the
- * region is cleared first and filled on the next frame, which is what makes
- * the second one count as a change.
+ * region is cleared first and refilled a turn later, which is what makes the
+ * second one register as a change.
+ *
+ * That turn is a timeout rather than an animation frame for the same reason
+ * the tick scheduler keeps a slow clock beside its fast one: frames stop
+ * entirely while the tab is hidden, and a session can finish while it is.
+ * The announcement would sit unwritten until the user came back and looked,
+ * which of all the ways to fail is the wrong one for the channel that exists
+ * for people who are not looking.
  */
 export function createAnnouncerView(root: ParentNode): AnnouncerView {
   const region = queryElement(root, '[data-announce]');
@@ -25,9 +32,9 @@ export function createAnnouncerView(root: ParentNode): AnnouncerView {
     announce(message) {
       region.textContent = '';
 
-      requestAnimationFrame(() => {
+      window.setTimeout(() => {
         region.textContent = message;
-      });
+      }, 0);
     },
   };
 }
