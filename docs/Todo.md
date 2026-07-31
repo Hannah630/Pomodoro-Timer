@@ -365,25 +365,35 @@
 
 跑之前把 Focus 設成 10 秒、Break 設成 5 秒，否則光等就要一小時。
 
-### 在手機上跑這份清單
+### 在 iPhone 上跑這份清單
 
-用 USB 連線 + Chrome 的 port forwarding，**不要**用 `http://192.168.x.x:5173`。
+開發機是 Windows，手機是 iPhone。這個組合有兩件事先講清楚，免得白花時間找：
 
-原因是通知與定位都要求 **secure context**：區網 IP 不算，那兩個功能會直接壞
-掉，而看起來會像程式有 bug。port forwarding 之後手機看到的網址是
-`localhost:5173`，localhost **算**，所以權限流程跟正式環境一模一樣。
+- **iOS 沒有「USB 偵錯」**，那是 Android 的設定，不是沒找到
+- **Windows 無法遠端偵錯 iOS Safari**。Web Inspector 只存在於 macOS 的 Safari，
+  Chrome 的 `chrome://inspect` 對 iPhone 沒有作用。所以 iPhone 上看不到
+  console，只看得到畫面
 
-1. 手機：設定 → 開發者選項 → 開啟 **USB 偵錯**，接上電腦
-2. 電腦 Chrome 開 `chrome://inspect/#devices` → **Port forwarding** →
-   加一條 `5173` → `localhost:5173` → 勾 Enable
-3. 電腦 `npm run dev`
-4. 手機 Chrome 開 `http://localhost:5173`
+兩條路，看要不要連定位一起測：
 
-`chrome://inspect` 那頁可以對手機上的分頁直接開 DevTools，console 與版面都看得
-到。不需要 Android Studio、JDK 或任何通道服務。
+| | 指令 | 熱更新 | 定位／天氣 |
+| --- | --- | --- | --- |
+| 區網 | `npm run dev -- --host` → 手機開印出來的 `http://192.168.x.x:5173` | ✅ | ❌ |
+| Pages | push 之後開 `https://hannah630.github.io/Pomodoro-Timer/` | ❌ | ✅ |
 
-沒有實機時，DevTools 的裝置模擬選有瀏海的 iPhone 機型可以代替下面的「安全區」
-那幾條——它會實際餵 `env(safe-area-inset-*)` 進去——其餘的仍然要實機。
+定位要求 **secure context**，區網 IP 不算，所以第一條的天氣那行會留白——那是預期
+行為，不是壞掉。第一次跑 `--host` 時 Windows 防火牆會問，允許「私人網路」。
+
+### 一定要「加入主畫面」再測一次
+
+在 Safari 分頁裡，瀏覽器自己的上下列會蓋住瀏海與底部手勢條，
+`env(safe-area-inset-*)` 幾乎都是 0——**等於整個安全區都沒被測到**。
+
+把網頁加入主畫面、從主畫面圖示打開，頁面才會拿到整個螢幕，才是 Capacitor 之後
+會跑的那個模式。下面的「安全區」那幾條要在這個模式下驗才算數。
+
+（Android 的話有 `chrome://inspect` 的 port forwarding 可以把 `localhost:5173`
+轉給手機，連通知與定位都能測。這裡用不到，記著備用。）
 
 ### 計時
 
@@ -465,34 +475,45 @@
 - [ ] 切到別的分頁再切回來：Network 沒有新請求（半小時內）
 - [ ] 螢幕閱讀器：讀數填進去時會被讀出來（`aria-live="polite"`）
 
-### 手機實機
+### iPhone 實機
 
 封裝之前要掃乾淨的一輪。進了 Capacitor 之後每個 bug 都會先被懷疑是封裝造成
 的，這一輪就是用來排除那個懷疑的基準線。
 
-**安全區**（Stage 24 新加的，第一次驗）
+**安全區**（Stage 24 新加的，第一次驗。**必須從主畫面圖示打開**，不是 Safari
+分頁——分頁裡瀏覽器的上下列會把 inset 蓋成 0）
 
-- [ ] 直式：右上角 Settings / History 兩顆按鈕沒有被瀏海或狀態列壓到
-- [ ] 直式：底部 Start / Reset 沒有被手勢條蓋住，按得到
+- [ ] 直式：右上角 Settings / History 兩顆按鈕沒有被瀏海或動態島壓到
+- [ ] 直式：底部 Start / Reset 沒有被底部那條 home indicator 蓋住，按得到
 - [ ] **橫式**：轉過去之後上面兩條仍然成立——橫式才會有左右 inset
 - [ ] 橫式開抽屜：內容沒有貼到圓角，Clear history 按得到
-- [ ] 沒有瀏海的機型／桌機：版面**沒有多出空白**（inset 應為 0）
+- [ ] 桌機瀏覽器再看一次：版面**沒有多出空白**（inset 應為 0）
 
 **觸控與版面**
 
 - [ ] 所有按鈕單手按得到，不會誤觸旁邊那顆
 - [ ] Task 欄位點下去鍵盤跳出來，版面沒有被推爛；收起鍵盤後恢復
 - [ ] 打字時倒數繼續跑，而且**輸入的字不會被 render 蓋掉**
+- [ ] 兩指縮放不會把版面拉歪（`viewport-fit=cover` 之後要重看一次）
 
-**權限與背景**（這幾條就是 port forwarding 的理由）
+**背景與音效**
 
-- [ ] 第一次載入會問定位權限；允許後錶盤上方出現天氣
-- [ ] 按 Start 會問通知權限（Android 13+ 是 runtime 權限）
 - [ ] 切到別的 App 放兩分鐘再回來 → **倒數數字是對的**，沒有落後
-- [ ] 切到背景等歸零 → 通知有跳出來（Android Chrome）
 - [ ] 鎖屏放三分鐘再解鎖回來 → 數字對
+- [ ] 時間到看得到三層結束動畫（不需要任何權限）
+- [ ] **實體靜音鍵打開時沒有提示音，關掉時有** —— iOS 特有，桌機測不到
+- [ ] iOS 設定裡開「減少動態」再回來 → 只剩淡淡的色彩變化
 
-**測不到、不用試**
+**天氣**（只有走 Pages 那條才測得到）
 
-- [ ] ~~鎖屏／殺掉瀏覽器之後通知準時響~~ ——瀏覽器做不到，這是 Stage 25
-      要靠 OS 排程解決的，也是整個封裝唯一非做不可的理由
+- [ ] 會問定位權限；允許後錶盤上方出現天氣
+- [ ] 拒絕權限 → 那一行留白，計時完全不受影響
+
+**iPhone 上測不到、不用試**
+
+- [ ] ~~通知會不會跳~~ ——iOS 的 Safari 分頁**沒有 Notification API**；
+      iOS 16.4 之後只有主畫面 PWA 才有，而且必須走 service worker，本專案
+      用的 `new Notification()` 建構子在那裡一樣不支援。程式不會壞，
+      `canNotify()` 會安靜跳過只播提示音，那是原本就設計好的降級
+- [ ] ~~鎖屏／關掉之後通知準時響~~ ——瀏覽器做不到，這是 Stage 25 要靠 OS
+      排程解決的，也是整個封裝唯一非做不可的理由
