@@ -8,6 +8,7 @@ import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
 import { createControlsView } from './ui/controls-view';
+import { createDocumentTitleView } from './ui/document-title-view';
 import { queryElement } from './ui/dom';
 import { createDrawerGroup } from './ui/drawer';
 import {
@@ -53,6 +54,7 @@ const session = createSessionService({
 let pausedByLeaving = false;
 
 const timerView = createTimerView(app);
+const documentTitleView = createDocumentTitleView();
 const modesView = createModesView(app, {
   onSelect: (mode) => {
     pausedByLeaving = false;
@@ -123,6 +125,7 @@ function render(state: TimerState): void {
     sessionDurationMs: timer.getSessionDurationMs(),
     pausedByLeaving,
   });
+  documentTitleView.render(state);
   modesView.render(state);
   titleView.render(state.mode);
   controlsView.render(state);

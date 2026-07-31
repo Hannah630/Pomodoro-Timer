@@ -23,3 +23,25 @@ export function formatPrimaryAction(state: TimerState): string {
       return `Start ${MODE_LABELS[state.mode].toLowerCase()}`;
   }
 }
+
+/** The tab's title with nothing running, and what index.html already says. */
+export const DOCUMENT_TITLE = 'Pomodoro Timer';
+
+/**
+ * What the browser tab reads.
+ *
+ * Only a running timer puts the countdown up there. A paused one showing
+ * "12:34" in a tab the user is not looking at would say the session is still
+ * going when it stopped the moment they left, which is the opposite of what
+ * the focus guard just told them.
+ *
+ * Minutes and seconds only — the tab is glanced at, not watched, and
+ * hundredths there would be a title that changes sixty times a second.
+ */
+export function formatDocumentTitle(state: TimerState, clock: string): string {
+  if (state.status !== 'running') {
+    return DOCUMENT_TITLE;
+  }
+
+  return `${clock} · ${MODE_LABELS[state.mode]}`;
+}
