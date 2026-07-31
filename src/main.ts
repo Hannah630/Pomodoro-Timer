@@ -22,6 +22,7 @@ import {
   watchForLeaving,
 } from './ui/focus-guard';
 import { createHistoryView } from './ui/history-view';
+import { createLocalTimeView } from './ui/local-time-view';
 import { summarizeToday } from './ui/history-format';
 import { formatCompletion } from './ui/labels';
 import { createModesView } from './ui/modes-view';
@@ -117,6 +118,7 @@ const settingsView = createSettingsView(document, {
   onChange: (patch) => applySettings(patch),
 });
 
+const localTimeView = createLocalTimeView(app);
 const geolocation = createGeolocationService();
 const weatherView = createWeatherView(app);
 const weather = createWeatherService({
@@ -321,6 +323,19 @@ render(timer.getState());
 settingsView.render(timer.getSettings());
 titleView.setValue(session.getTitle());
 renderHistory();
+localTimeView.render();
+
+/**
+ * A minute is the smallest thing the wall clock shows, but it is asked every
+ * second.
+ *
+ * Waking once a second costs nothing — the view compares before it writes, so
+ * fifty-nine of every sixty calls touch no DOM — and it means the display is
+ * never more than a second behind the turn of a minute. Arranging to wake
+ * exactly on the minute instead would mean re-arming a timeout that the
+ * browser is free to throttle anyway.
+ */
+window.setInterval(() => localTimeView.render(), 1000);
 
 /**
  * Fire and forget: the line above the dial fills itself in when there is an
@@ -339,6 +354,10 @@ void showWeather();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     timer.tick();
+
+    // The interval above is throttled to about once a minute while the tab is
+    // hidden, so the wall clock can be a minute out on return.
+    localTimeView.render();
 
     // And the same for the weather, which is now always on screen: a reading
     // taken this morning has no business still being displayed this evening.

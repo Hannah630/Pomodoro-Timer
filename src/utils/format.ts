@@ -32,6 +32,13 @@ export function formatCountdown(ms: number): Countdown {
   };
 }
 
-function padTwoDigits(value: number): string {
+/**
+ * Two digits, zero padded — "07", "42".
+ *
+ * Exported because the wall clock above the dial pads the same way. One
+ * definition rather than two identical ones in the two modules that show a
+ * time.
+ */
+export function padTwoDigits(value: number): string {
   return value.toString().padStart(2, '0');
 }

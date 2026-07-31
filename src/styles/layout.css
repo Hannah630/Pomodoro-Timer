@@ -92,6 +92,25 @@
 }
 
 /**
+ * The time of day, above the weather.
+ *
+ * Three sizes now sit in this column, and they are meant to be read in that
+ * order: the countdown, which is why anyone is here; the time, which is
+ * glanced at; the weather, which is noticed. So --text at the title size —
+ * plainly legible, and still a quarter of the clock beneath it.
+ *
+ * The negative margin cancels most of the instrument's gap. The time and the
+ * weather are two lines of one remark, not two separate rows.
+ */
+.local-time {
+  margin: 0 0 calc(var(--space-s) * -1 + var(--space-xs));
+  color: var(--text);
+  font-size: var(--step-title);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-meta);
+}
+
+/**
  * The weather, above the instrument.
  *
  * --muted and the small size on purpose: it is context, not the thing anyone
