@@ -1,0 +1,33 @@
+<!--
+  The app icon: one tomato, centred, filled edge to edge.
+
+  Not tomato.svg, which is the watermark tile — two tomatoes at different
+  sizes and offsets, drawn that way so a repeat does not read as a grid. A
+  tile makes a poor icon, so this is the same drawing at one size in the
+  middle.
+
+  The two colours are the literals behind the mode-focus and on-mode tokens.
+  An SVG cannot read a stylesheet, and the same pairing is why on-mode
+  exists: dark ink on the accent, because the accent is mid-brightness and a
+  pale mark on it would not carry.
+
+  (Written without a double hyphen anywhere, tokens included. An SVG is
+  parsed as XML, where that sequence inside a comment is a fatal error, not
+  a warning — the icon simply fails to decode.)
+
+  The tomato sits well inside the middle 80%, so a launcher that crops this
+  to a circle or a squircle takes nothing but background.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+>
+  <rect width="512" height="512" fill="#ff4438" />
+  <g fill="none" stroke="#0f1216" stroke-width="19" stroke-linecap="round">
+    <circle cx="256" cy="282" r="150" />
+    <path d="M256 132v-56" />
+    <path d="M256 132l-87-44M256 132l87-44M256 132l-62 62M256 132l62 62" />
+  </g>
+</svg>
