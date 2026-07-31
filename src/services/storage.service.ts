@@ -1,3 +1,4 @@
+import { DEFAULT_THEME, THEMES, type Theme } from '../models/theme.model';
 import { SECONDS_PER_MINUTE, type TimerSettings } from '../models/timer.model';
 import { readItem, writeItem, type KeyValueStorage } from './key-value-storage';
 
@@ -12,6 +13,14 @@ export const STORAGE_KEY = 'pomodoro-timer';
  *
  * Upgrading in place rather than discarding: a save that is merely old is not
  * a corrupt one, and dropping it would silently reset durations people chose.
+ *
+ * `theme` arrived after 3 and did not bump it. A version says "this build
+ * cannot read that save", and an added field with a default is the opposite
+ * of that: a version 3 save is missing nothing this build needs. Bumping
+ * would also be actively worse than doing nothing, because the rule for an
+ * unrecognised version is to discard the whole save — so a still-open older
+ * tab would throw away durations and a lifetime count over a colour scheme
+ * it never needed to know about.
  */
 export const STORAGE_VERSION = 3;
 
@@ -22,6 +31,8 @@ export interface PersistedState {
   readonly totalFocusMs: number;
   /** What the user is working on, so a reload does not ask them again. */
   readonly title: string;
+  /** The colour scheme, or the choice to keep following the system. */
+  readonly theme: Theme;
 }
 
 export interface StorageService {
@@ -71,6 +82,11 @@ export function createStorageService(storage: KeyValueStorage): StorageService {
         // the length cap, not splitting an emoji — is the session service's
         // rule, and it applies it to everything it is given.
         title: typeof parsed['title'] === 'string' ? parsed['title'] : '',
+        // Checked here, unlike the settings, because there is nothing
+        // downstream to reject it: it goes from here to an attribute on the
+        // root element, and an unknown value there would match no rule and
+        // leave the page in whichever theme it was already wearing.
+        theme: readTheme(parsed['theme']),
       };
     },
 
@@ -175,6 +191,15 @@ function parseJson(raw: string): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Anything that is not one of the three known choices means the default:
+ * a save written by a build that offered a fourth is no more trustworthy
+ * here than one somebody edited by hand.
+ */
+function readTheme(value: unknown): Theme {
+  return THEMES.includes(value as Theme) ? (value as Theme) : DEFAULT_THEME;
 }
 
 /**

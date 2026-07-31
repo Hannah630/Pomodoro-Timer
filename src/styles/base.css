@@ -146,20 +146,24 @@
  *
  * --watermark-opacity goes up, because the tomato is drawn in the focus red
  * and light backgrounds swallow a 5% tint that dark ones show plainly.
+ *
+ * Selected by an attribute rather than by `prefers-color-scheme`, because
+ * following the system is now one of three answers instead of the only one.
+ * theme-view writes the resolved scheme onto the root — never `system`, which
+ * it has already asked the machine about — so this file needs one block per
+ * theme instead of one per theme per way of arriving at it.
  */
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
+:root[data-theme='light'] {
+  color-scheme: light;
 
-    --ink: #f4f4f2;
-    --text: #14171b;
-    /* Dark enough to clear 4.5:1 on --control too, which is the darkest
-       thing it ever sits on: that is the task field's placeholder. */
-    --muted: #585f6a;
-    --surface: #fbfbfa;
-    --scrim: rgb(20 23 27 / 32%);
-    --watermark-opacity: 0.07;
-  }
+  --ink: #f4f4f2;
+  --text: #14171b;
+  /* Dark enough to clear 4.5:1 on --control too, which is the darkest
+     thing it ever sits on: that is the task field's placeholder. */
+  --muted: #585f6a;
+  --surface: #fbfbfa;
+  --scrim: rgb(20 23 27 / 32%);
+  --watermark-opacity: 0.07;
 }
 
 *,
