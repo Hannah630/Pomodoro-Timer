@@ -95,6 +95,30 @@ export class TimerService {
   }
 
   /**
+   * When the current run finishes, or null if nothing is running.
+   *
+   * Deliberately not part of `TimerState`: no view draws a deadline, and the
+   * state is the model the views are given. What needs this is anything that
+   * has to act at a moment the app may not be awake for — a notification
+   * booked with the operating system when the session starts, rather than
+   * fired by a tick that a suspended app will never take.
+   */
+  getEndAt(): number | null {
+    return this.endAt;
+  }
+
+  /**
+   * Which mode follows the one loaded now.
+   *
+   * The same rule `complete()` applies, exposed because the sentence a
+   * completion announces has to be written before the session ends, not
+   * after — and it names the mode coming next.
+   */
+  getNextMode(): TimerMode {
+    return this.nextModeAfter(this.mode);
+  }
+
+  /**
    * Switches to a mode by hand, at its full length and stopped.
    *
    * Choosing the mode already running does nothing, so a stray click on the

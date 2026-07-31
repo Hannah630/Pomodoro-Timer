@@ -15,6 +15,21 @@ export interface NotificationService {
    */
   enable(): void;
 
+  /**
+   * Books the announcement for a deadline, ahead of the session reaching it.
+   *
+   * The app cannot rely on being awake when a session ends — a native shell
+   * is suspended within seconds of being backgrounded, and its timers stop
+   * with it. Anything that must happen at the deadline has to be handed to
+   * something that outlives the app, and handed over while it still can be.
+   *
+   * Called again for each new deadline, which supersedes the last.
+   */
+  schedule(at: number, title: string, body: string): void;
+
+  /** Un-books it: the session was paused, reset, or switched by hand. */
+  cancel(): void;
+
   /** Announces a finished session. Silently does less if it is not allowed. */
   notify(title: string, body: string): void;
 }
@@ -41,6 +56,20 @@ export function createNotificationService(): NotificationService {
         void Notification.requestPermission().catch(() => undefined);
       }
     },
+
+    /**
+     * Nothing to book, and nothing to book it with.
+     *
+     * A browser hands out no scheduler that survives the page: a setTimeout
+     * is throttled in a background tab and gone the moment the tab is, and a
+     * service worker cannot be woken at a chosen time either. What a browser
+     * does give is a tab that keeps ticking, however slowly, so the ordinary
+     * path — the tick reaching zero and calling notify — is the whole story
+     * here. These two exist for the platform where it is not.
+     */
+    schedule() {},
+
+    cancel() {},
 
     notify(title, body) {
       playChime(audio);

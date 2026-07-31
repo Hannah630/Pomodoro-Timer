@@ -515,3 +515,62 @@ Markdown 表格，而一個中文字是一個字元、兩欄寬，`docs/` 裡的
 大字（小字每幀寫，它本來就每幀在變），`document-title-view` 記住上次寫進
 `document.title` 的字串。**比對放在 `main.ts`**——它是接線層，這是接線問題；
 下放到各 view 就會變成三份一模一樣、而且各自有機會走鐘的比較邏輯。
+
+這個分界後來多接了一件不是 render 的事：`bookCompletion()`。理由是同一個——
+deadline 只在 start / pause / reset / 換模式 / 結束時移動，而這五件事**全都會
+改變 mode 或 status**，所以全都落在「有變才畫」那一半；純 tick 一個都不會進來。
+把預約掛在這裡，等於免費拿到正確的節奏，不必再拉一條事件管線。
+
+## 準備給原生外殼
+
+尚未引入 Capacitor，但有四件事先在瀏覽器這一側做完了——它們各自都站得住腳，
+而且都能在 node 測。
+
+### 時間到的那一刻，App 可能是睡著的
+
+deadline 法讓**顯示**在鎖屏兩小時後回來仍然是對的，這點原生照樣成立。但
+`complete()` 是靠 tick 敲出來的，而原生外殼進背景幾秒後整個 WebView 就會被凍
+結，rAF 與 interval 一起停——時間到的那一刻不會有通知、不會有音效、也不會記錄。
+
+所以 `NotificationService` 從「事後說」長出「先預約」：
+
+| 方法 | Web | 原生（Stage B） |
+| --- | --- | --- |
+| `schedule(at, title, body)` | **空的** | 交給 OS，App 被殺掉也會響 |
+| `cancel()` | **空的** | 取消已預約的那則 |
+| `notify(title, body)` | 提示音 + `Notification` | 只播提示音 |
+
+Web 那兩個是空的，因為瀏覽器根本沒有可以託付的排程器：`setTimeout` 在背景分頁
+被節流、分頁一關就沒了，service worker 也無法指定時間喚醒。瀏覽器給的是一個
+**還在跑的分頁**，所以原本那條路（tick 歸零 → `notify()`）就是全部。
+
+原生的 `notify()` 不再發通知，是為了避免「OS 響一次、回到前景 JS 補跑
+`complete()` 又響一次」。
+
+要預約就得先知道**幾點響**與**要說什麼**，所以 `TimerService` 多開兩個 getter：
+`getEndAt()` 與 `getNextMode()`。兩個都**不進 `TimerState`**——那是給 view 的模
+型，而沒有任何一個 view 要畫 deadline。這跟 `getSessionDurationMs()` 是同一類：
+服務擁有、協作者需要、但不屬於畫面。
+
+### base 路徑要能切換
+
+`base` 原本固定是 GitHub Pages 的 `/Pomodoro-Timer/`。原生外殼從自己容器的根
+目錄載入同一批檔案，這個前綴會讓每個資產都 404、開起來是白畫面。
+`npm run build:native` 走 `vite build --mode native`，`base` 回到 `/`。
+
+用 Vite 自己的 `--mode` 而不是環境變數，是因為 npm script 在 Windows 上走
+cmd，`FOO=bar command` 在那裡不成立。
+
+### 安全區
+
+`viewport-fit=cover` 加四個 token（`--safe-top` 等）。它們在沒有瀏海的螢幕上
+是 0，在不認得 `env()` 的瀏覽器上也是 0，所以需要讓開的地方直接加，不必包
+media query。
+
+| 元素 | 吃哪幾邊 | 為什麼 |
+| --- | --- | --- |
+| `.app` | 四邊 | 唯一橫跨整個螢幕的盒子，而且底部放著 Start / Reset |
+| `.toolbar` | 上、右 | 固定在右上角，瀏海與圓角都伸到那裡 |
+| `.drawer` | 上、下、右 | 貼右緣；只有滿版時才碰到左緣，而那是直式，直式的左右 inset 本來就是 0 |
+
+這一項對現在的手機瀏覽器就有效，不是只為了 App 做的。

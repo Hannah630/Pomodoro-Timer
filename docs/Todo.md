@@ -315,6 +315,39 @@
 - [x] 沒有新測試：`timer-view.ts` 是純瀏覽器副作用，依慣例沒有 spec
 - [ ] 驗收：見手動驗收清單
 
+## Stage 24 — 原生外殼的前置　`feat/native-shell-prep`
+
+不裝 Capacitor。這四件事各自站得住腳、都能在 node 測，先做掉可以讓第一次封裝
+少踩幾個雷。
+
+- [x] `vite build --mode native` 讓 `base` 回到 `/`；用 Vite 的 `--mode` 而不是
+      環境變數，因為 npm script 在 Windows 走 cmd
+- [x] `viewport-fit=cover` + 四個 `--safe-*` token，套到 `.app`（四邊）、
+      `.toolbar`（上右）、`.drawer`（上下右）。**對現在的手機瀏覽器就有效**
+- [x] `TimerService.getEndAt()` / `getNextMode()`：要預約通知就得先知道幾點響、
+      要說什麼。不進 `TimerState`——沒有 view 要畫 deadline
+- [x] `NotificationService` 加 `schedule()` / `cancel()`；web 實作是空的，因為
+      瀏覽器沒有可以託付的排程器
+- [x] `main.ts` 的 `bookCompletion()` 掛在 render 的「有變才畫」那一半——
+      deadline 移動的五種情況全都會改變 mode 或 status，純 tick 不會
+- [x] 6 個新測試（166 → 172）
+- [ ] 驗收：見手動驗收清單
+
+## Stage 25 — Capacitor 測試封裝　`feat/capacitor`（未開始）
+
+- [ ] `src/platform/`，動態 import 隔開，`services` 與 `ui` 維持零 runtime 相依
+- [ ] `@capacitor/local-notifications`：Android 12+ 要 `SCHEDULE_EXACT_ALARM`
+      並開 `allowWhileIdle`，否則系統會為了省電把鬧鐘延後
+- [ ] Android 13+ 通知改成 runtime 權限，`enable()` 要變 async
+- [ ] `App.addListener('appStateChange')` 取代 `visibilitychange`
+- [ ] **原生不再「離開就暫停」**：手機上拉通知中心、接電話都會觸發離開，
+      而 deadline + OS 排程已經保證計時正確。web 版維持原行為
+- [ ] 全螢幕在 WKWebView 無效（現有程式碼已防呆），原生換成隱藏狀態列
+- [ ] 待實測：open-meteo 的 CORS 在 `capacitor://localhost` 過不過。過不了就把
+      `fetchJson` 換成原生 HTTP——它已經是注入的，`weather.service` 不用動
+- [ ] 待實測：`localStorage` 會不會被 WKWebView 回收。真的會掉再換
+      `@capacitor/preferences`；介面不用改，注入不同的 `KeyValueStorage` 就好
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑
@@ -374,6 +407,8 @@
 - [ ] 介面全英文（把瀏覽器語言改成中文再看一次）
 - [ ] 分頁圖示是番茄，DevTools Network 沒有 `favicon.ico` 的 404
 - [ ] 375px、740×360、1440px 三個尺寸都不破版
+- [ ] 用 DevTools 模擬 iPhone（有瀏海那幾台）並轉成橫式：右上角兩顆按鈕不被
+      瀏海壓到，底部 Start / Reset 不被手勢條蓋住，抽屜也一樣
 
 ### 主題與可近用性
 

@@ -196,9 +196,39 @@ function render(state: TimerState): void {
   }
 
   renderedFor = state;
+  bookCompletion();
   modesView.render(state);
   titleView.render(state.mode);
   controlsView.render(state);
+}
+
+/**
+ * Hands the end of the session to whatever can announce it without the app.
+ *
+ * Booked from inside the event-driven half of render, which is exactly the
+ * right cadence: every move of the deadline — start, pause, reset, a mode
+ * switch, a session finishing — changes the mode or the status and lands
+ * here, while the sixty ticks a second that change neither do not. Rebooking
+ * a notification at frame rate is the alternative, and it is not one.
+ *
+ * The sentence is written now rather than at the deadline, because by the
+ * deadline there may be nobody awake to write it.
+ */
+function bookCompletion(): void {
+  const state = timer.getState();
+  const endAt = timer.getEndAt();
+
+  if (state.status !== 'running' || endAt === null) {
+    notifications.cancel();
+    return;
+  }
+
+  const { headline, detail } = formatCompletion(
+    state.mode,
+    timer.getNextMode(),
+  );
+
+  notifications.schedule(endAt, headline, detail);
 }
 
 /** Show the title the service kept, not the raw text that produced it. */

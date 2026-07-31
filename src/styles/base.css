@@ -93,6 +93,22 @@
    */
   --step-clock: clamp(3.5rem, min(23vw, 26vh), 10rem);
 
+  /**
+   * The strips of screen the hardware has already spoken for: the notch, the
+   * rounded corners, the home indicator.
+   *
+   * Zero on every display that has none of those, and zero in any browser
+   * that does not know `env()` — so anything that needs clearing can add one
+   * of these unconditionally, with no query around it. They are tokens rather
+   * than four inline `env()` calls because they are a spacing scale like any
+   * other, and because a device that reports them is exactly the device
+   * nobody is developing on.
+   */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
   --space-xs: 0.5rem;
   --space-s: 0.75rem;
   --space-m: 1.5rem;
