@@ -350,6 +350,27 @@ inset 全是 0，那段 CSS 等於沒被測過。開發機 Windows、手機 iPho
       讓人懷疑改的東西沒生效。現在是「可安裝」，不是「可離線」
 - [ ] 驗收：見手動驗收清單
 
+## Stage 24.6 — 主題三選一　`feat/theme-choice`
+
+起因是實機測試：桌機是淺色、手機是深色，同一份程式碼長得不一樣，而「我想要一直
+是淺色」在 `prefers-color-scheme` 的模型裡說不出口。
+
+- [x] `models/theme.model.ts`：`system` / `light` / `dark`，預設 `system`。
+      `system` 是一個選擇，不是「沒有選」
+- [x] `services/theme.service.ts`：解析 `system`，記住選擇，變動時通知。
+      系統偏好用 `SchemeQuery` 注入，所以「入夜自動翻深色」在 node 裡測得到
+- [x] `ui/theme-view.ts`：把**解析後**的值寫成根元素的 `data-theme`，
+      並依**選擇**（不是解析結果）標出按下的按鈕——選 System 時該亮的是 System
+- [x] `base.css` 的 media query 換成 `:root[data-theme='light']`。因為寫進去的
+      永遠不是 `system`，樣式表仍然只有兩個區塊，沒有多出重複
+- [x] Settings 抽屜加一組 pill 按鈕，沿用主畫面的 `.mode`
+- [x] storage 驗證讀回來的值（它直接變成屬性，下游沒有東西會擋）
+- [x] **沒有 bump 版本**：加欄位有預設值不等於讀不懂舊存檔，而且認不得的版本
+      會被整份丟掉——舊分頁會為了配色把時長跟累計次數一起清光。`title` 當初
+      也是這樣加的
+- [x] 12 個新測試（172 → 184）
+- [ ] 驗收：見手動驗收清單
+
 ## Stage 25 — Capacitor 測試封裝　`feat/capacitor`（未開始）
 
 - [ ] `src/platform/`，動態 import 隔開，`services` 與 `ui` 維持零 runtime 相依
@@ -468,6 +489,10 @@ Safari 分享鈕 → **加入主畫面**。因為 `apple-mobile-web-app-capable`
 
 ### 主題與可近用性
 
+- [ ] Settings 的 Theme 選 Light → **不管系統是深是淺**，介面都是淺色；
+      選 Dark 同理；選 System 才跟著系統走
+- [ ] 選好之後重整 → 選擇還在
+- [ ] 停在 System，把系統主題切過去 → 介面**不用重整就跟著翻**
 - [ ] 把系統切成淺色 → 整個介面翻面，抽屜比背景亮，瀏覽器上下欄配色跟著換
 - [ ] 淺色主題下 Start 按鈕與被選中的模式按鈕**是深色字**，不是淡色字
 - [ ] 兩套主題下 Task 欄位的 placeholder 都讀得清楚

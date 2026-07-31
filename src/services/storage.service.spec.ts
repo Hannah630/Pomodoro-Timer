@@ -48,6 +48,7 @@ describe('storage service', () => {
         completedFocusCount: 3,
         totalFocusMs: 4500,
         title: 'Write Q3 report',
+        theme: 'dark' as const,
       };
 
       service.save(state);
@@ -151,6 +152,31 @@ describe('storage service', () => {
 
       expect(service.load()?.title).toHaveLength(500);
     });
+
+    it('reads back each of the three themes', () => {
+      (['system', 'light', 'dark'] as const).forEach((theme) => {
+        const service = createStorageService(
+          createFakeStorage(storedPayload({ theme })),
+        );
+
+        expect(service.load()?.theme).toBe(theme);
+      });
+    });
+
+    // Checked here rather than downstream: this value ends up as an attribute
+    // on the root element, where an unrecognised one matches no rule and
+    // silently leaves the page in whatever theme it was already wearing.
+    it('falls back to following the system for anything else', () => {
+      const cases: unknown[] = [undefined, null, 'solarized', '', 4, true, {}];
+
+      cases.forEach((stored) => {
+        const service = createStorageService(
+          createFakeStorage(storedPayload({ theme: stored })),
+        );
+
+        expect(service.load()?.theme).toBe('system');
+      });
+    });
   });
 
   describe('upgrading an older save', () => {
@@ -179,6 +205,9 @@ describe('storage service', () => {
         completedFocusCount: 3,
         totalFocusMs: 0,
         title: '',
+        // A save this old predates the field entirely, so it reads back as
+        // following the system — the same answer a first-time visitor gets.
+        theme: 'system',
       });
     });
 
@@ -261,6 +290,7 @@ describe('storage service', () => {
           completedFocusCount: 1,
           totalFocusMs: 1000,
           title: '',
+          theme: 'system',
         }),
       ).not.toThrow();
     });

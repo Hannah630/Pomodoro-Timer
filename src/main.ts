@@ -9,6 +9,10 @@ import { fetchJson } from './services/network';
 import { createNotificationService } from './services/notification.service';
 import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
+import {
+  createMediaSchemeQuery,
+  createThemeService,
+} from './services/theme.service';
 import { TimerService } from './services/timer.service';
 import { createWeatherService } from './services/weather.service';
 import { createAnnouncerView } from './ui/announcer-view';
@@ -28,6 +32,7 @@ import { formatCompletion } from './ui/labels';
 import { createModesView } from './ui/modes-view';
 import { createSettingsView } from './ui/settings-view';
 import { watchForShortcuts } from './ui/shortcuts';
+import { createThemeView } from './ui/theme-view';
 import { createTimerView } from './ui/timer-view';
 import { createTitleView } from './ui/title-view';
 import { createWeatherView } from './ui/weather-view';
@@ -43,6 +48,28 @@ const app = queryElement(document, '#app');
 
 const storage = createStorageService(localStorage);
 const restored = storage.load();
+
+/**
+ * The theme goes on first, before anything else is built.
+ *
+ * The stylesheet's base is the dark theme and the attribute written here is
+ * what selects the light one, so every moment before this line is a moment
+ * the page would be drawn dark. Nothing below needs to happen before it, so
+ * nothing does.
+ */
+const theme = createThemeService({
+  theme: restored?.theme,
+  scheme: createMediaSchemeQuery(),
+});
+const themeView = createThemeView(document, {
+  onSelect: (chosen) => {
+    theme.set(chosen);
+    persist();
+  },
+});
+
+theme.subscribe(() => themeView.render(theme.get(), theme.resolved()));
+themeView.render(theme.get(), theme.resolved());
 
 const timer = new TimerService({
   settings: restored?.settings,
@@ -308,6 +335,7 @@ function persist(): void {
     completedFocusCount: timer.getState().completedFocusCount,
     totalFocusMs: session.getTotalFocusMs(),
     title: session.getTitle(),
+    theme: theme.get(),
   });
 }
 

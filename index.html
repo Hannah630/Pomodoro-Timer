@@ -253,6 +253,44 @@
           />
         </label>
       </div>
+
+      <!--
+        Stacked rather than laid out as a row like the durations above: three
+        pills and a label do not fit across a 22rem drawer.
+
+        Same buttons as the mode switcher on the main screen, because they do
+        the same job — one of a small set, exactly one of them on.
+      -->
+      <div role="group" aria-label="Theme">
+        <span class="field__name field__name--stacked">Theme</span>
+
+        <div class="modes">
+          <button
+            class="mode mode--compact"
+            type="button"
+            data-theme-system
+            aria-pressed="true"
+          >
+            System
+          </button>
+          <button
+            class="mode mode--compact"
+            type="button"
+            data-theme-light
+            aria-pressed="false"
+          >
+            Light
+          </button>
+          <button
+            class="mode mode--compact"
+            type="button"
+            data-theme-dark
+            aria-pressed="false"
+          >
+            Dark
+          </button>
+        </div>
+      </div>
     </aside>
 
     <aside

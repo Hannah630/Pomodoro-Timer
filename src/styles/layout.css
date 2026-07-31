@@ -253,6 +253,7 @@
  */
 .modes {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-xs);
 }
 
@@ -284,6 +285,11 @@
   border-color: var(--mode);
   background: var(--mode);
   color: var(--on-mode);
+}
+
+/* Three of these have to fit where two normally sit, inside a drawer. */
+.mode--compact {
+  padding: 0 var(--space-s);
 }
 
 .mode:focus-visible {
@@ -507,6 +513,18 @@
   border-color: var(--mode);
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
+}
+
+/**
+ * The name of a setting whose control is too wide to sit beside it.
+ *
+ * Its container is a plain block rather than a flex column, so the `flex: 1`
+ * above simply does not apply — which is cheaper than unsetting it, and the
+ * reason this modifier only has to say how it stacks.
+ */
+.field__name--stacked {
+  display: block;
+  margin-bottom: var(--space-xs);
 }
 
 /* Column headings, so the two boxes on each row need no label of their own. */
