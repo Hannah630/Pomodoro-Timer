@@ -92,6 +92,36 @@
 }
 
 /**
+ * The weather, above the instrument.
+ *
+ * --muted and the small size on purpose: it is context, not the thing anyone
+ * opened this page for, and it should lose every contest for attention with
+ * the figures below it.
+ *
+ * One line of height is held whether or not there is anything in it. Without
+ * that, the dial, the clock and the buttons would all drop a line the moment
+ * the forecast arrives — a layout shift a second or two after the page had
+ * already settled, which is the kind that makes people misclick.
+ */
+.weather {
+  min-height: 1lh;
+  /**
+   * Held away from the dial, on top of the gap that binds the instrument
+   * together. The dial, the clock and the count are one object and are spaced
+   * as one; the weather is a separate remark and should not read as the
+   * instrument's top line.
+   *
+   * Scaled against the viewport like --space-l is, so a landscape phone does
+   * not spend a fixed 1.5rem of a screen it has no height to give.
+   */
+  margin: 0 0 clamp(var(--space-s), 4vh, var(--space-m));
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-meta);
+}
+
+/**
  * A wind-up kitchen timer: one revolution is the whole session. The arc is
  * the time left and the hand sits at its leading edge, so both shrink back to
  * the top together. Everything here is driven by --fill; no script involved.

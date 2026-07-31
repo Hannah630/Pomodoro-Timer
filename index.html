@@ -69,6 +69,16 @@
     <main class="app" id="app">
       <section class="session">
         <div class="session__instrument">
+          <!--
+            Above the dial, and empty until there is something to say.
+
+            A line that reads "unavailable" would sit over the countdown for
+            good on any device that will not give a position — so nothing is
+            said instead. The space it will occupy is reserved in CSS, so the
+            instrument below does not move when the reading arrives.
+          -->
+          <p class="weather" data-weather aria-live="polite"></p>
+
           <div class="dial" aria-hidden="true">
             <span class="dial__hand"></span>
           </div>

@@ -280,6 +280,7 @@ localStorage key 為 `pomodoro-timer`，內容是：
 ```
 pomodoro-timer          設定與完成次數
 pomodoro-timer:history  { "version": 1, "records": [...] }
+pomodoro-timer:weather  { "version": 1, "fetchedAt": …, "weather": {...} }
 ```
 
 分開的理由：歷史會一直長大而設定不會，寫一邊不必重寫另一邊；而且**歷史壞掉不會
@@ -308,6 +309,73 @@ pomodoro-timer:history  { "version": 1, "records": [...] }
 
 `HistoryStorage` 的 `now()` 一樣是注入的，否則 90 天的期限得等 90 天才能測。
 
+## 天氣：定位、快取與三種失敗
+
+一行天氣放在**錶盤正上方**，`.session__instrument` 的第一個子元素。
+
+這是被推翻過一次的決定。原本放在 Settings 抽屜底部，理由是專注鎖定：這支 app 會
+在使用者一離開就暫停 focus，那就沒道理在倒數旁邊擺一個自己會變的數字。使用者選
+了主畫面，於是排版上用另外兩件事把代價壓下來——`--muted` 加最小級字（它永遠不會
+贏過下面的數字），以及**沒有讀數時整行留白**，不留一句錯誤訊息在倒數上面。
+
+CSS 保留了 `min-height: 1lh`。天氣是非同步填進去的，不保留的話，錶盤、時鐘、按鈕
+會在頁面看似已經穩定的一兩秒後整組往下掉一行。
+
+### 資料來源為什麼是 Open-Meteo
+
+這個站部署在 GitHub Pages，**靜態主機沒有地方藏祕密**。任何需要 API key 的服務，
+那把 key 都會跟著 bundle 一起送到每個訪客手上。Open-Meteo 不需要金鑰，這是選它
+的唯一理由，不是因為它的資料比較好。
+
+送出的座標會先 `toFixed(2)`（約一公里）。天氣不會隔一條街就不同，一個離開這台
+機器的請求沒有必要帶著比答案更精確的位置。
+
+### 什麼時候問定位
+
+載入時就問，只有第一次。天氣在主畫面上，沒有一個「使用者打開它才需要資料」的面板
+可以等——原本為此而加的 `DrawerConfig.onOpen` 也就跟著移除了，一個沒人用的擴充點
+比沒有它更糟。
+
+被拒絕過的瀏覽器不會再跳視窗，它會直接回絕，那一行就一直是空的。
+
+### 兩個觸發點
+
+| 時機 | 為什麼 |
+| --- | --- |
+| 載入 | 那一行從一開始就在畫面上 |
+| `visibilitychange` 回到前景 | 早上抓的讀數沒有理由晚上還掛在錶盤上面 |
+
+兩個都先問快取，所以半小時內回到分頁不會有請求也不會重新定位。`locating` 這個
+旗標擋的是兩個觸發點同時發生。
+
+### 三種失敗都是 null
+
+沒有 geolocation API（純 HTTP）、使用者拒絕、裝置定不到位而逾時、網路不通、回
+傳的形狀變了——`WeatherService` 一律回 `null`，不丟例外。天氣是倒數旁邊的裝飾
+品，它的任何一種失敗都不值得打斷任何人。
+
+畫面上的處理跟著位置改變了：在抽屜裡，`Weather unavailable` 是誠實的回答；掛在倒
+數正上方，它變成一句使用者無能為力、卻要一直看著的抱怨。所以現在是留白。
+
+### 兩種形狀，兩個驗證
+
+`toWeather()` 認的是 Open-Meteo 的回應，`isWeather()` 認的是存進 localStorage 的
+那四個值。看起來重複，但**存檔裡放的是本專案決定的欄位名，不是對方的**——否則
+對方改一次欄位名，就變成一次使用者端的資料遷移。
+
+快取 30 分鐘（`WEATHER_MAX_AGE_MS`）。夠久，所以反覆開關抽屜只會有一次請求與一
+次定位；夠短，所以數字不會過期，也限制了「帶著舊位置移動」最多能錯多久。
+
+### 地名是時區推出來的
+
+`Asia/Taipei` → `Taipei`。省掉一次反向地理編碼的請求，代價是它其實是**時區的代表
+城市**：人在高雄也會看到 Taipei。接受這個誤差，因為這個名字的用途是「確認定位成
+功了」，不是報出所在地。
+
+`geolocation.service.ts` 與 `network.ts` 沒有測試，理由跟 `notification.service`
+一樣：裡面除了呼叫瀏覽器 API 之外沒有別的東西。有規則的部分都在
+`weather.service.ts`（注入 port）與 `weather-format.ts`（純函式）裡，那兩個有測。
+
 ## 已決定的取捨（MVP）
 
 | 決策 | 理由 |
@@ -329,9 +397,9 @@ Vitest 跑在 **node** 環境，沒有 jsdom。這是刻意的：不裝 jsdom �
 
 | 對象 | 怎麼測 | 例子 |
 | --- | --- | --- |
-| Service | 完整的單元測試 | `timer.service`、`session.service`、兩個 storage |
-| 純函式 | 從使用它的模組匯出，就地測 | `labels.ts`、`history-format.ts`、`settings-view.ts` 的 `parseCount` |
-| 純副作用 | **不測** | `notification.service.ts`、`focus-guard.ts` |
+| Service | 完整的單元測試 | `timer.service`、`session.service`、兩個 storage、`weather.service` |
+| 純函式 | 從使用它的模組匯出，就地測 | `labels.ts`、`history-format.ts`、`weather-format.ts`、`settings-view.ts` 的 `parseCount` |
+| 純副作用 | **不測** | `notification.service.ts`、`focus-guard.ts`、`geolocation.service.ts`、`network.ts` |
 
 第二類是關鍵：一個 view 裡真正有規則的部分（怎麼算今天的總計、按鈕該顯示什麼
 字、打進去的字算不算數字）都可以抽成不碰 DOM 的函式，抽出來之後它就跟 service

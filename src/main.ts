@@ -3,11 +3,14 @@ import './styles/layout.css';
 
 import type { TimerSettings, TimerState } from './models/timer.model';
 import { createFrameScheduler } from './services/frame-scheduler';
+import { createGeolocationService } from './services/geolocation.service';
 import { createHistoryStorage } from './services/history-storage';
+import { fetchJson } from './services/network';
 import { createNotificationService } from './services/notification.service';
 import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
+import { createWeatherService } from './services/weather.service';
 import { createAnnouncerView } from './ui/announcer-view';
 import { createControlsView } from './ui/controls-view';
 import { createDocumentTitleView } from './ui/document-title-view';
@@ -26,6 +29,7 @@ import { createSettingsView } from './ui/settings-view';
 import { watchForShortcuts } from './ui/shortcuts';
 import { createTimerView } from './ui/timer-view';
 import { createTitleView } from './ui/title-view';
+import { createWeatherView } from './ui/weather-view';
 
 /**
  * Application entry point.
@@ -111,6 +115,14 @@ const controlsView = createControlsView(app, {
 });
 const settingsView = createSettingsView(document, {
   onChange: (patch) => applySettings(patch),
+});
+
+const geolocation = createGeolocationService();
+const weatherView = createWeatherView(app);
+const weather = createWeatherService({
+  storage: localStorage,
+  fetchJson,
+  locate: () => geolocation.locate(),
 });
 
 const drawers = createDrawerGroup(queryElement(document, '[data-scrim]'));
@@ -212,6 +224,37 @@ function renderHistory(): void {
   );
 }
 
+/** Set while a request is out, so two triggers at once still ask once. */
+let locating = false;
+
+/**
+ * Puts the weather on screen, fetching it only when there is nothing current.
+ *
+ * A stored reading is shown without a request and without a location, so
+ * coming back to the tab inside half an hour costs neither. Nothing is
+ * rendered when there is no reading: the failure is left unsaid rather than
+ * printed above the countdown.
+ */
+async function showWeather(): Promise<void> {
+  const stored = weather.cached();
+
+  if (stored !== null) {
+    weatherView.render(stored);
+    return;
+  }
+
+  if (locating) {
+    return;
+  }
+
+  locating = true;
+
+  const reading = await weather.load();
+
+  locating = false;
+  weatherView.render(reading);
+}
+
 /**
  * The form is rendered from what the service accepted, not from what was
  * typed, so a clamped value appears in the field straight away.
@@ -279,11 +322,27 @@ settingsView.render(timer.getSettings());
 titleView.setValue(session.getTitle());
 renderHistory();
 
+/**
+ * Fire and forget: the line above the dial fills itself in when there is an
+ * answer, and nothing else on the page waits for one.
+ *
+ * This is also where the permission is asked for, on the first visit only —
+ * the line lives on the main screen now, so there is no panel to wait for
+ * anyone to open. A browser that has already been refused does not prompt
+ * again; it declines immediately, and the line stays empty.
+ */
+void showWeather();
+
 // A background tab throttles the interval, so the display can be several
 // seconds stale by the time the user comes back. One tick on return recomputes
 // it from the deadline.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     timer.tick();
+
+    // And the same for the weather, which is now always on screen: a reading
+    // taken this morning has no business still being displayed this evening.
+    // Inside the half hour this costs nothing — the stored one is used.
+    void showWeather();
   }
 });
