@@ -20,7 +20,8 @@ Author: Hannah
 - Durations are editable to the second, from 5 seconds to 2 hours
 - History keeps the last 500 sessions, or 90 days of them, whichever comes first
 - Settings, the session count and the history survive a reload
-- Works on a phone and on a desktop
+- Follows your system's light or dark theme, and its motion preference
+- Works on a phone and on a desktop, with a mouse, a keyboard or a screen reader
 
 ## Tech stack
 

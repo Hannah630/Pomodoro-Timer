@@ -27,12 +27,25 @@
   /* Points at the accent of the current mode. Rewritten by timer-view. */
   --mode: var(--mode-focus);
 
+  /**
+   * Text sitting on top of a mode colour, and the one colour that does not
+   * follow the theme.
+   *
+   * Both accents are mid-brightness, so dark text is the readable choice
+   * against either one whichever way round the page is. Using --ink here
+   * instead would be legible in the dark theme by luck and fail in the light
+   * one: pale text on that red is about 2.9:1.
+   */
+  --on-mode: #0f1216;
+
   /* Fraction of the session still remaining, 1 -> 0. Written by timer-view. */
   --fill: 1;
 
   --ink: #0f1216;
   --text: #f2f3f5;
-  --muted: #7c838e;
+  /* Lifted from #7c838e, which sat at 4.8:1 — and it is only ever used on
+     the smallest text in the app, where the margin matters most. */
+  --muted: #8b929d;
   /* Quiet, and translucent so the watermark stays visible through it. */
   --field: color-mix(in srgb, var(--mode) 10%, transparent);
   --line: color-mix(in srgb, var(--text) 16%, transparent);
@@ -46,8 +59,33 @@
   --font-display:
     'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
 
+  /**
+   * One ring, everywhere.
+   *
+   * It was four different rings before: two colours and two offsets across
+   * the buttons, the mode switch and the two kinds of input. --text rather
+   * than --mode because the ring has to be visible on the mode colour too —
+   * the active mode button is filled with it.
+   */
+  --focus-ring: 2px solid var(--text);
+  --focus-ring-offset: 3px;
+
   --step-label: 0.75rem;
   --step-title: 1rem;
+
+  /**
+   * Three levels of letter-spacing, where there was one value used by six
+   * different elements.
+   *
+   * Uppercase and widely tracked is how this app says "label", and when
+   * every element says it at the same volume, nothing is emphasised. So:
+   * widest for the labels that name a control, middle for the words on the
+   * controls themselves, narrow for figures and status text — which are read
+   * rather than scanned, and which tracking only slows down.
+   */
+  --tracking-label: 0.24em;
+  --tracking-action: 0.14em;
+  --tracking-meta: 0.08em;
 
   /**
    * Sized against whichever viewport dimension is tighter, so a landscape
@@ -71,6 +109,41 @@
      transition would leave the dial trailing behind the clock. */
   --transition-fill: 120ms linear;
   --transition-drawer: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/**
+ * The light theme, which is five values.
+ *
+ * Everything else is declared as a color-mix of --ink and --text, so --field,
+ * --line, --control and --control-hover all turn over on their own the moment
+ * those two swap ends. That was the point of routing every colour through
+ * tokens, and this is where it gets paid back.
+ *
+ * The three that do need saying:
+ *
+ * --surface is normally --ink lifted towards --text, which in a light theme
+ * would make the drawers darker than the page they sit above. A raised
+ * surface should be brighter than what it covers, so it is set outright.
+ *
+ * --scrim is black at a lower strength: the same 55% over a pale page reads
+ * as a blackout rather than a dimming.
+ *
+ * --watermark-opacity goes up, because the tomato is drawn in the focus red
+ * and light backgrounds swallow a 5% tint that dark ones show plainly.
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --ink: #f4f4f2;
+    --text: #14171b;
+    /* Dark enough to clear 4.5:1 on --control too, which is the darkest
+       thing it ever sits on: that is the task field's placeholder. */
+    --muted: #585f6a;
+    --surface: #fbfbfa;
+    --scrim: rgb(20 23 27 / 32%);
+    --watermark-opacity: 0.07;
+  }
 }
 
 *,
@@ -99,4 +172,23 @@ input {
 
 [hidden] {
   display: none;
+}
+
+/**
+ * Present to a screen reader, absent to everyone else.
+ *
+ * Not `display: none` and not `visibility: hidden` — both of those take the
+ * element out of the accessibility tree as well, which would defeat the
+ * point. A 1px clipped box stays in the tree and takes up no room.
+ */
+.visually-hidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

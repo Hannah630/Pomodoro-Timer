@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f1216" />
+    <!-- One per theme, so the browser chrome matches the page it frames. -->
+    <meta
+      name="theme-color"
+      content="#0f1216"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="theme-color"
+      content="#f4f4f2"
+      media="(prefers-color-scheme: light)"
+    />
 
     <!--
       Vite rewrites this path with the configured base, so it resolves both on
@@ -17,6 +27,22 @@
   <body>
     <div class="watermark" aria-hidden="true"></div>
     <div class="level" aria-hidden="true"></div>
+
+    <!--
+      The end of a session is announced here.
+
+      The dial is aria-hidden and the clock is aria-live="off" — a countdown
+      that read itself out sixty times a second would be unusable — so with
+      nothing else, a screen reader user gets no signal at all that the time
+      is up. The chime needs sound and the notification needs permission;
+      this needs neither.
+    -->
+    <p
+      class="visually-hidden"
+      role="status"
+      aria-live="polite"
+      data-announce
+    ></p>
 
     <div class="toolbar">
       <button
@@ -66,12 +92,12 @@
             </button>
           </div>
 
-          <p class="session__today" data-today>0 today</p>
-
           <p class="session__time" role="timer" aria-live="off">
             <span data-clock>25:00</span
             ><span class="session__centiseconds" data-centiseconds>00</span>
           </p>
+
+          <p class="session__today" data-today>0 today</p>
 
           <p class="session__hint" data-hint hidden>Paused — you left</p>
         </div>

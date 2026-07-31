@@ -24,6 +24,23 @@ export function formatPrimaryAction(state: TimerState): string {
   }
 }
 
+/**
+ * What a finished session is called, in two parts.
+ *
+ * One source for the desktop notification and for the announcement a screen
+ * reader hears. They are the same sentence said down two channels, and two
+ * copies would be two chances to describe the same event differently.
+ */
+export function formatCompletion(
+  finished: TimerMode,
+  next: TimerMode,
+): { readonly headline: string; readonly detail: string } {
+  return {
+    headline: `${MODE_LABELS[finished]} finished`,
+    detail: `Up next: ${MODE_LABELS[next].toLowerCase()}`,
+  };
+}
+
 /** The tab's title with nothing running, and what index.html already says. */
 export const DOCUMENT_TITLE = 'Pomodoro Timer';
 

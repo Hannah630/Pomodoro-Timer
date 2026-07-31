@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { TimerMode, TimerState, TimerStatus } from '../models/timer.model';
 import {
   DOCUMENT_TITLE,
+  formatCompletion,
   formatDocumentTitle,
   formatPrimaryAction,
 } from './labels';
@@ -20,6 +21,20 @@ describe('formatPrimaryAction', () => {
   it('offers to pause a running session and to resume a paused one', () => {
     expect(formatPrimaryAction(state('focus', 'running'))).toBe('Pause');
     expect(formatPrimaryAction(state('focus', 'paused'))).toBe('Resume');
+  });
+});
+
+describe('formatCompletion', () => {
+  it('names what ended and what follows', () => {
+    expect(formatCompletion('focus', 'break')).toEqual({
+      headline: 'Focus finished',
+      detail: 'Up next: break',
+    });
+
+    expect(formatCompletion('break', 'focus')).toEqual({
+      headline: 'Break finished',
+      detail: 'Up next: focus',
+    });
   });
 });
 

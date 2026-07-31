@@ -8,6 +8,7 @@ import { createNotificationService } from './services/notification.service';
 import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
+import { createAnnouncerView } from './ui/announcer-view';
 import { createControlsView } from './ui/controls-view';
 import { createDocumentTitleView } from './ui/document-title-view';
 import { queryElement } from './ui/dom';
@@ -19,7 +20,7 @@ import {
 } from './ui/focus-guard';
 import { createHistoryView } from './ui/history-view';
 import { summarizeToday } from './ui/history-format';
-import { MODE_LABELS } from './ui/labels';
+import { formatCompletion } from './ui/labels';
 import { createModesView } from './ui/modes-view';
 import { createSettingsView } from './ui/settings-view';
 import { watchForShortcuts } from './ui/shortcuts';
@@ -60,6 +61,8 @@ let pausedByLeaving = false;
 
 const timerView = createTimerView(app);
 const documentTitleView = createDocumentTitleView();
+// Outside #app: the live region belongs to the page, not to the layout.
+const announcerView = createAnnouncerView(document);
 const modesView = createModesView(app, {
   onSelect: (mode) => {
     pausedByLeaving = false;
@@ -245,10 +248,13 @@ timer.onComplete((finished, next, durationMs) => {
 
   persist();
   timerView.flash();
-  notifications.notify(
-    `${MODE_LABELS[finished]} finished`,
-    `Up next: ${MODE_LABELS[next].toLowerCase()}`,
-  );
+
+  // One sentence, three channels: the colour for anyone watching, the sound
+  // and notification for anyone away, the live region for anyone listening.
+  const { headline, detail } = formatCompletion(finished, next);
+
+  notifications.notify(headline, detail);
+  announcerView.announce(`${headline}. ${detail}`);
 });
 
 /**
