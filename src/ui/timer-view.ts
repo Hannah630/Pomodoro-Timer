@@ -8,8 +8,11 @@ const MODE_ACCENTS: Record<TimerMode, string> = {
   break: 'var(--mode-break)',
 };
 
-/** Must match the alert-wash animation in layout.css. */
-const ALERT_DURATION_MS = 900;
+/**
+ * Must outlast every alert animation in layout.css, which is the two rings of
+ * alert-ring at 600ms each. Cut short, the class would come off mid-ring.
+ */
+const ALERT_DURATION_MS = 1200;
 
 export interface TimerViewContext {
   readonly sessionDurationMs: number;

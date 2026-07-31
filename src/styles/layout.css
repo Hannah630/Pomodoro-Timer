@@ -39,7 +39,14 @@
   pointer-events: none;
 }
 
-/* A single fade of the mode colour when a session ends. */
+/**
+ * A single fade of the mode colour when a session ends.
+ *
+ * One of three things that happen at once, and the quiet one: the whole page
+ * changing colour is what gets noticed out of the corner of an eye. The two
+ * that carry the moment — the dial's rings and the clock's beat — are with
+ * their own components further down.
+ */
 .level::after {
   content: '';
   position: absolute;
@@ -206,6 +213,32 @@
 }
 
 /**
+ * The bell: two rings leave the dial when a session ends.
+ *
+ * A wind-up timer announces itself at the dial, so that is where this starts.
+ * Twice rather than once — a single expanding ring is as flat as the fade it
+ * accompanies, and it is the second one that makes it read as a sound.
+ *
+ * box-shadow rather than another element: both of the dial's pseudo-elements
+ * are already spent, on the marks and on the arc, and a spreading shadow needs
+ * no markup and takes no space — it paints past the rim without moving the
+ * weather above it or the mode buttons below.
+ */
+:root.is-alerting .dial {
+  animation: alert-ring 600ms ease-out 2;
+}
+
+@keyframes alert-ring {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mode) 50%, transparent);
+  }
+
+  to {
+    box-shadow: 0 0 0 2.5rem transparent;
+  }
+}
+
+/**
  * The mode switcher is also the label for the current mode: a heading reading
  * "Focus" beside a control for choosing Focus would be the same word twice.
  */
@@ -325,6 +358,31 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.045em;
   line-height: 0.82;
+}
+
+/**
+ * The clock lands once when the session ends.
+ *
+ * Settling from oversize rather than pulsing on the spot: a figure that throbs
+ * reads as something wrong, a figure that arrives reads as something finished.
+ * The countdown is idle by now, so this is not competing with the per-frame
+ * repaint of the hundredths beside it.
+ *
+ * A transform, so nothing around it moves — the count and the hint below keep
+ * their places while the largest thing on the page settles.
+ */
+:root.is-alerting .session__time {
+  animation: alert-beat 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes alert-beat {
+  from {
+    transform: scale(1.08);
+  }
+
+  to {
+    transform: scale(1);
+  }
 }
 
 /* Subordinate to the clock: precise when wanted, quiet the rest of the time. */
@@ -735,5 +793,18 @@
     to {
       opacity: 0;
     }
+  }
+
+  /**
+   * The other two go entirely.
+   *
+   * The rings travel and the clock changes size, which is exactly what this
+   * preference asks not to happen — and unlike the wash, neither is anyone's
+   * only signal. Removing them leaves the softened fade, which is still enough
+   * to say the session ended.
+   */
+  :root.is-alerting .dial,
+  :root.is-alerting .session__time {
+    animation: none;
   }
 }
