@@ -1,12 +1,5 @@
-import {
-  SECONDS_PER_MINUTE,
-  type TimerSettings,
-} from '../models/timer.model';
-import {
-  readItem,
-  writeItem,
-  type KeyValueStorage,
-} from './key-value-storage';
+import { SECONDS_PER_MINUTE, type TimerSettings } from '../models/timer.model';
+import { readItem, writeItem, type KeyValueStorage } from './key-value-storage';
 
 export const STORAGE_KEY = 'pomodoro-timer';
 
@@ -42,9 +35,7 @@ export interface StorageService {
  * already validates everything it is handed, so there is no second copy of
  * that rule here.
  */
-export function createStorageService(
-  storage: KeyValueStorage,
-): StorageService {
+export function createStorageService(storage: KeyValueStorage): StorageService {
   return {
     load() {
       const raw = readItem(storage, STORAGE_KEY);

@@ -70,7 +70,9 @@ describe('storage service', () => {
     it('ignores a save that is not an object', () => {
       expect(createStorageService(createFakeStorage('5')).load()).toBeNull();
       expect(createStorageService(createFakeStorage('null')).load()).toBeNull();
-      expect(createStorageService(createFakeStorage('[1,2]')).load()).toBeNull();
+      expect(
+        createStorageService(createFakeStorage('[1,2]')).load(),
+      ).toBeNull();
     });
 
     it('falls back to empty settings when the field is the wrong type', () => {
@@ -188,7 +190,9 @@ describe('storage service', () => {
     });
 
     it('upgrades an empty settings object to an empty one', () => {
-      const service = createStorageService(createFakeStorage(oldPayload(1, {})));
+      const service = createStorageService(
+        createFakeStorage(oldPayload(1, {})),
+      );
 
       expect(service.load()?.settings).toEqual({});
     });

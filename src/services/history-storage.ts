@@ -4,11 +4,7 @@ import {
   MS_PER_DAY,
   type SessionRecord,
 } from '../models/session.model';
-import {
-  readItem,
-  writeItem,
-  type KeyValueStorage,
-} from './key-value-storage';
+import { readItem, writeItem, type KeyValueStorage } from './key-value-storage';
 
 /**
  * A second key, kept apart from the settings save on purpose.

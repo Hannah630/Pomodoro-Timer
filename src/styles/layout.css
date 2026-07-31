@@ -16,8 +16,8 @@
   inset: 0;
   background: var(--mode-focus);
   opacity: var(--watermark-opacity);
-  -webkit-mask: url('/tomato.svg') repeat 0 0 /
-    var(--watermark-tile) var(--watermark-tile);
+  -webkit-mask: url('/tomato.svg') repeat 0 0 / var(--watermark-tile)
+    var(--watermark-tile);
   mask: url('/tomato.svg') repeat 0 0 / var(--watermark-tile)
     var(--watermark-tile);
   pointer-events: none;
@@ -177,7 +177,9 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease,
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
     color 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -236,7 +238,9 @@
   color: var(--text);
   font-size: var(--step-title);
   text-align: center;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .task__input::placeholder {
@@ -307,7 +311,9 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 150ms ease, border-color 150ms ease;
+  transition:
+    opacity 150ms ease,
+    border-color 150ms ease;
 }
 
 .button:hover {
@@ -538,7 +544,9 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease,
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
     color 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -567,7 +575,9 @@
   visibility: hidden;
   background: var(--scrim);
   opacity: 0;
-  transition: opacity var(--transition-drawer), visibility var(--transition-drawer);
+  transition:
+    opacity var(--transition-drawer),
+    visibility var(--transition-drawer);
 }
 
 :root.is-history-open .scrim,

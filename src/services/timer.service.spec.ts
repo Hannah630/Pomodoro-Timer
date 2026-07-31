@@ -79,7 +79,9 @@ describe('TimerService', () => {
 
       service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
 
-      expect(service.getSessionDurationMs()).toBe(10 * SECONDS_PER_MINUTE * MS_PER_SECOND);
+      expect(service.getSessionDurationMs()).toBe(
+        10 * SECONDS_PER_MINUTE * MS_PER_SECOND,
+      );
     });
 
     it('holds still when the settings change mid-session', () => {
@@ -304,7 +306,9 @@ describe('TimerService', () => {
 
       service.updateSettings({ focusSeconds: 10 * SECONDS_PER_MINUTE });
 
-      expect(service.getState().remainingMs).toBe(10 * SECONDS_PER_MINUTE * MS_PER_SECOND);
+      expect(service.getState().remainingMs).toBe(
+        10 * SECONDS_PER_MINUTE * MS_PER_SECOND,
+      );
     });
 
     it('does not disturb a session that is already running', () => {
@@ -324,7 +328,9 @@ describe('TimerService', () => {
       service.updateSettings({ breakSeconds: 3 * SECONDS_PER_MINUTE });
       runToCompletion(service, advance);
 
-      expect(service.getState().remainingMs).toBe(3 * SECONDS_PER_MINUTE * MS_PER_SECOND);
+      expect(service.getState().remainingMs).toBe(
+        3 * SECONDS_PER_MINUTE * MS_PER_SECOND,
+      );
     });
   });
 
@@ -374,7 +380,6 @@ describe('TimerService', () => {
         breakSeconds: DEFAULT_SETTINGS.breakSeconds,
       });
     });
-
 
     it('validates settings supplied at construction, not just through the form', () => {
       const { service } = createTimer({

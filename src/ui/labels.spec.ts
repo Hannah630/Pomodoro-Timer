@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type {
-  TimerMode,
-  TimerState,
-  TimerStatus,
-} from '../models/timer.model';
+import type { TimerMode, TimerState, TimerStatus } from '../models/timer.model';
 import { formatPrimaryAction } from './labels';
 
 function state(mode: TimerMode, status: TimerStatus): TimerState {
