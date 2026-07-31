@@ -133,7 +133,8 @@ localStorage key 為 `pomodoro-timer`，內容是：
   "version": 3,
   "settings": { "focusSeconds": 1500, "breakSeconds": 300 },
   "completedFocusCount": 3,
-  "totalFocusMs": 4500000
+  "totalFocusMs": 4500000,
+  "title": "Write the report"
 }
 ```
 
@@ -147,6 +148,10 @@ localStorage key 為 `pomodoro-timer`，內容是：
 這樣「什麼算合法的時長」只寫一份。`completedFocusCount` 與 `totalFocusMs` 的外部
 來源只有 storage 一個，所以就在 storage 檢查一次（非數字或負數 → 0，小數 → 無條件
 捨去）。
+
+`title` 走的是跟 `settings` 一樣的分工：storage 只確認它是不是字串，長度上限與
+去空白由 `SessionService.normalizeTitle()` 負責——那條規則已經寫在那裡，複製一份
+到 storage 就會有兩個地方要改上限。
 
 ### 版本與遷移
 

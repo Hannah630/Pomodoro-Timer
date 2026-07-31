@@ -9,6 +9,8 @@ export const MAX_TITLE_LENGTH = 20;
 export interface SessionServiceOptions {
   history?: readonly SessionRecord[];
   totalFocusMs?: number;
+  /** Restored from storage, and normalized on the way in like any other. */
+  title?: string;
   /** Injected so specs can record sessions without waiting for the clock. */
   now?: () => number;
   /** Injected so specs get stable ids instead of random ones. */
@@ -47,7 +49,10 @@ export function createSessionService(
   const now = options.now ?? (() => Date.now());
   const createId = options.createId ?? (() => crypto.randomUUID());
 
-  let title = '';
+  // Normalized rather than trusted: a restored title has been through
+  // localStorage, where anything could have been written over it, and nothing
+  // downstream of here would catch an over-long one.
+  let title = normalizeTitle(options.title ?? '');
   let history: readonly SessionRecord[] = options.history ?? [];
   let totalFocusMs = options.totalFocusMs ?? 0;
 

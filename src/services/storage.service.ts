@@ -20,6 +20,8 @@ export interface PersistedState {
   readonly completedFocusCount: number;
   /** Lifetime focus time, kept beside the count for the same reason. */
   readonly totalFocusMs: number;
+  /** What the user is working on, so a reload does not ask them again. */
+  readonly title: string;
 }
 
 export interface StorageService {
@@ -65,6 +67,10 @@ export function createStorageService(storage: KeyValueStorage): StorageService {
         // Only ever written by version 3; older saves start it from zero,
         // which is the one honest answer available.
         totalFocusMs: readCount(parsed['totalFocusMs']),
+        // Checked for shape only. What makes a title acceptable — trimming,
+        // the length cap, not splitting an emoji — is the session service's
+        // rule, and it applies it to everything it is given.
+        title: typeof parsed['title'] === 'string' ? parsed['title'] : '',
       };
     },
 

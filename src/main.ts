@@ -43,6 +43,7 @@ const historyStorage = createHistoryStorage(localStorage);
 const session = createSessionService({
   history: historyStorage.load(),
   totalFocusMs: restored?.totalFocusMs,
+  title: restored?.title,
 });
 
 /**
@@ -131,6 +132,7 @@ function render(state: TimerState): void {
 function applyTitle(raw: string): void {
   session.setTitle(raw);
   titleView.setValue(session.getTitle());
+  persist();
 }
 
 function saveHistory(): void {
@@ -163,14 +165,15 @@ function applySettings(patch: Partial<TimerSettings>): void {
 
 /**
  * Saving on every state change would write sixty times a second. The
- * persisted values only move when a session finishes or the settings change,
- * so those are the only moments worth writing.
+ * persisted values only move when a session finishes, the settings change or
+ * the task is renamed, so those are the only moments worth writing.
  */
 function persist(): void {
   storage.save({
     settings: timer.getSettings(),
     completedFocusCount: timer.getState().completedFocusCount,
     totalFocusMs: session.getTotalFocusMs(),
+    title: session.getTitle(),
   });
 }
 
