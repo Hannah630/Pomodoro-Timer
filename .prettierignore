@@ -1,0 +1,8 @@
+dist/
+package-lock.json
+
+# The documents are hand-wrapped Chinese prose with hand-aligned tables.
+# Prettier aligns table columns by counting characters, and a CJK character
+# is one character but two columns wide, so it would leave every table in
+# docs/ looking crooked in the terminal it is read in.
+*.md
