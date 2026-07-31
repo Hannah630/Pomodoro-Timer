@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f1216" />
+
+    <!--
+      Vite rewrites this path with the configured base, so it resolves both on
+      the dev server at / and on Pages under /Pomodoro-Timer/. Without it every
+      load spends a request on a /favicon.ico that was never there.
+    -->
+    <link rel="icon" href="/tomato.svg" type="image/svg+xml" />
+
     <title>Pomodoro Timer</title>
   </head>
   <body>
