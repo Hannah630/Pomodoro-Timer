@@ -15,8 +15,9 @@ Author: Hannah
 - Goes fullscreen while focusing, and pauses itself if you switch away
 - An analog dial: one revolution is the session, the hand tracks what is left
 - Chimes, washes the screen and raises a desktop notification when time is up
-- Name what you are working on, and read back the last 100 finished sessions
-- Durations are editable and held to whole minutes between 1 and 120
+- Name what you are working on, and read back what you finished
+- Durations are editable to the second, from 5 seconds to 2 hours
+- History keeps the last 500 sessions, or 90 days of them, whichever comes first
 - Settings, the session count and the history survive a reload
 - Works on a phone and on a desktop
 
