@@ -118,9 +118,7 @@ const settingsView = createSettingsView(document, {
 });
 
 const geolocation = createGeolocationService();
-// Outside #app: the line lives in the settings drawer, which spans the
-// viewport rather than the layout.
-const weatherView = createWeatherView(document);
+const weatherView = createWeatherView(app);
 const weather = createWeatherService({
   storage: localStorage,
   fetchJson,
@@ -133,10 +131,6 @@ drawers.add({
   toggle: queryElement(document, '[data-settings-toggle]'),
   panel: queryElement(document, '[data-settings-drawer]'),
   openClass: 'is-settings-open',
-  // Asked for on opening rather than on loading. A permission prompt in the
-  // first second of a page is a demand from something the user has not looked
-  // at yet; here it arrives with the panel that explains it.
-  onOpen: () => void showWeather(),
 });
 
 drawers.add({
@@ -230,20 +224,22 @@ function renderHistory(): void {
   );
 }
 
-/** Set while a request is out, so opening the drawer twice asks once. */
+/** Set while a request is out, so two triggers at once still ask once. */
 let locating = false;
 
 /**
- * Puts the weather on screen, fetching it only if there is nothing current.
+ * Puts the weather on screen, fetching it only when there is nothing current.
  *
- * The stored reading is shown without a request and without a location: half
- * an hour of opening and closing this panel costs one of each.
+ * A stored reading is shown without a request and without a location, so
+ * coming back to the tab inside half an hour costs neither. Nothing is
+ * rendered when there is no reading: the failure is left unsaid rather than
+ * printed above the countdown.
  */
 async function showWeather(): Promise<void> {
   const stored = weather.cached();
 
   if (stored !== null) {
-    weatherView.render({ status: 'ready', weather: stored });
+    weatherView.render(stored);
     return;
   }
 
@@ -252,16 +248,11 @@ async function showWeather(): Promise<void> {
   }
 
   locating = true;
-  weatherView.render({ status: 'locating' });
 
   const reading = await weather.load();
 
   locating = false;
-  weatherView.render(
-    reading === null
-      ? { status: 'unavailable' }
-      : { status: 'ready', weather: reading },
-  );
+  weatherView.render(reading);
 }
 
 /**
@@ -332,19 +323,15 @@ titleView.setValue(session.getTitle());
 renderHistory();
 
 /**
- * Someone who has already granted location gets the weather without being
- * asked a second time; someone who has not is left alone until they open the
- * panel it appears in.
+ * Fire and forget: the line above the dial fills itself in when there is an
+ * answer, and nothing else on the page waits for one.
  *
- * Fire and forget: a browser that cannot answer the question — Safari has no
- * permissions query for geolocation — has said no, and nothing else on the
- * page is waiting on the answer.
+ * This is also where the permission is asked for, on the first visit only —
+ * the line lives on the main screen now, so there is no panel to wait for
+ * anyone to open. A browser that has already been refused does not prompt
+ * again; it declines immediately, and the line stays empty.
  */
-void geolocation.isAlreadyGranted().then((granted) => {
-  if (granted) {
-    void showWeather();
-  }
-});
+void showWeather();
 
 // A background tab throttles the interval, so the display can be several
 // seconds stale by the time the user comes back. One tick on return recomputes
@@ -352,5 +339,10 @@ void geolocation.isAlreadyGranted().then((granted) => {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     timer.tick();
+
+    // And the same for the weather, which is now always on screen: a reading
+    // taken this morning has no business still being displayed this evening.
+    // Inside the half hour this costs nothing — the stored one is used.
+    void showWeather();
   }
 });

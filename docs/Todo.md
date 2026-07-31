@@ -267,18 +267,21 @@
 
 ## Stage 21 — 天氣　`feat/weather`
 
-範圍刻意小：Settings 抽屜底部**一行**，不是主畫面上的一塊。
+範圍刻意小：**一行**，不是一塊。
 
 - [x] `models/weather.model.ts`：型別、WMO 代碼對照、30 分鐘的快取期限
 - [x] `services/geolocation.service.ts`：`navigator.geolocation` 的包裝。沒有
       API、被拒絕、逾時，三種都收斂成 `null`
-- [x] 定位分兩段：`permissions.query` 說授權過就靜默取得；沒授權過等到抽屜打開
-      才問。為此 `DrawerConfig` 多了 `onOpen`
+- [x] 位置：**錶盤正上方**。原本放在 Settings 抽屜底部，使用者要求改到主畫面。
+      代價用排版壓下來——`--muted` 最小級字、沒讀數就留白、`min-height: 1lh`
+      保留行高避免版面位移
+- [x] 載入時就定位（第一次會跳權限視窗），回到前景時再試一次。
+      隨之移除只有抽屜用得到的 `DrawerConfig.onOpen`
 - [x] `services/weather.service.ts`：Open-Meteo（**免金鑰**，因為 Pages 是靜態
       主機藏不住 key）、座標降到小數兩位、第三把 storage key、注入
       `fetchJson` / `locate` / `now` 三個 port
 - [x] `ui/weather-format.ts`：WMO 代碼轉字、時區轉地名、整數度數（純函式，有測）
-- [x] `ui/weather-view.ts`：`locating` / `ready` / `unavailable` 三態 union
+- [x] `ui/weather-view.ts`：有讀數就寫上去，沒有就留白
 - [x] 28 個新測試（133 → 161）
 - [ ] 驗收：見手動驗收清單
 - [ ] **未做**：把天氣接進休息建議（「外面在下雨，這次休息待在室內」）。那才是
@@ -358,13 +361,14 @@
 
 ### 天氣
 
-- [ ] 第一次開 Settings 抽屜才跳定位權限視窗，**載入頁面時不會跳**
-- [ ] 允許之後那一行變成 `Taipei · 27° · 26–35° · Partly cloudy`
-- [ ] 重整後再開抽屜：立刻顯示，DevTools Network 沒有新的 open-meteo 請求
-      （30 分鐘內走快取），也不會再問一次定位
-- [ ] 拒絕權限 → 顯示 `Weather unavailable`，**計時完全不受影響**
-- [ ] DevTools 切成 Offline 再清掉 `pomodoro-timer:weather` → 一樣是
-      `Weather unavailable`，不是空白也不是當掉
+- [ ] 第一次載入跳定位權限視窗，允許後**錶盤上方**出現
+      `Taipei · 27° · 26–35° · Partly cloudy`
+- [ ] 天氣填進去的那一刻，錶盤與時鐘**沒有往下移動**（保留行高有生效）
+- [ ] 重整：立刻顯示，DevTools Network 沒有新的 open-meteo 請求（走快取），
+      也不會再問一次定位
+- [ ] 拒絕權限 → 那一行**留白**，不是錯誤訊息；**計時完全不受影響**
+- [ ] DevTools 切成 Offline 再清掉 `pomodoro-timer:weather` 重整 → 一樣留白，
+      不是當掉
 - [ ] localStorage 塞亂碼進 `pomodoro-timer:weather` → 重新抓，設定與歷史不受影響
-- [ ] 連開連關抽屜五次，Network 只有一次請求
-- [ ] 螢幕閱讀器：開抽屜聽到 "Locating…"，拿到之後會再讀出那一行
+- [ ] 切到別的分頁再切回來：Network 沒有新請求（半小時內）
+- [ ] 螢幕閱讀器：讀數填進去時會被讀出來（`aria-live="polite"`）

@@ -9,14 +9,6 @@ export interface DrawerConfig {
   panel: HTMLElement;
   /** Class put on the root while this drawer is open, for CSS to slide it. */
   openClass: string;
-  /**
-   * Called when the panel comes into view.
-   *
-   * For anything a panel should only go and get once someone is looking at
-   * it — which is also the only moment the app has a reason to ask the
-   * browser for something on the user's behalf.
-   */
-  onOpen?: () => void;
   onClose?: () => void;
 }
 
@@ -59,7 +51,7 @@ export function createDrawerGroup(scrim: HTMLElement): DrawerGroup {
   return {
     isAnyOpen: () => drawers.some((drawer) => drawer.isOpen()),
 
-    add({ toggle, panel, openClass, onOpen, onClose }) {
+    add({ toggle, panel, openClass, onClose }) {
       let open = false;
 
       function apply(): void {
@@ -83,7 +75,6 @@ export function createDrawerGroup(scrim: HTMLElement): DrawerGroup {
           panel.removeAttribute('inert');
           apply();
           panel.focus();
-          onOpen?.();
         },
 
         close() {

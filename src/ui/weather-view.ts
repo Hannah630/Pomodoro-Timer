@@ -2,51 +2,26 @@ import type { Weather } from '../models/weather.model';
 import { queryElement } from './dom';
 import { formatWeather } from './weather-format';
 
-/**
- * What the line can be showing.
- *
- * A union rather than a weather-or-null, because "asking" and "cannot say" are
- * different sentences and a null would have to stand for both.
- */
-export type WeatherState =
-  | { readonly status: 'locating' }
-  | { readonly status: 'ready'; readonly weather: Weather }
-  | { readonly status: 'unavailable' };
-
 export interface WeatherView {
-  render(state: WeatherState): void;
+  /** Shows a reading, or nothing at all when there is none. */
+  render(weather: Weather | null): void;
 }
 
 /**
- * One line of weather at the foot of the settings drawer.
+ * One line of weather above the dial.
  *
- * In a drawer rather than beside the clock on purpose. This app pauses a focus
- * session the moment the user looks away; putting something that changes on
- * its own next to the countdown would be spending on distraction what the rest
- * of it spends protecting.
- *
- * Failure is stated rather than hidden. An empty line where a reading was
- * expected reads as broken, and "unavailable" is the honest word for a
- * permission that was refused, a network that is not there, and a forecast
- * that came back in a shape this does not know.
+ * Null renders as an empty line rather than as a message. In a panel someone
+ * opened to look at the weather, "unavailable" is the honest answer; sitting
+ * permanently above a countdown, on a device that will never give a position,
+ * it is a complaint the user can do nothing about. The reserved line in CSS is
+ * what lets it say nothing without moving the instrument.
  */
 export function createWeatherView(root: ParentNode): WeatherView {
   const line = queryElement(root, '[data-weather]');
 
   return {
-    render(state) {
-      line.textContent = describe(state);
+    render(weather) {
+      line.textContent = weather === null ? '' : formatWeather(weather);
     },
   };
-}
-
-function describe(state: WeatherState): string {
-  switch (state.status) {
-    case 'locating':
-      return 'Locating…';
-    case 'ready':
-      return formatWeather(state.weather);
-    case 'unavailable':
-      return 'Weather unavailable';
-  }
 }

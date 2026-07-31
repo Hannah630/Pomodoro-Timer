@@ -10,14 +10,6 @@ const LOCATE_TIMEOUT_MS = 10_000;
 const POSITION_MAX_AGE_MS = 30 * 60 * 1000;
 
 export interface GeolocationService {
-  /**
-   * Whether permission was granted on an earlier visit.
-   *
-   * Asked so that a returning user gets the weather without being prompted,
-   * and a new one is not prompted the instant the page opens.
-   */
-  isAlreadyGranted(): Promise<boolean>;
-
   /** A fix, or null if the browser will not give one. */
   locate(): Promise<Coordinates | null>;
 }
@@ -36,21 +28,6 @@ export interface GeolocationService {
  */
 export function createGeolocationService(): GeolocationService {
   return {
-    async isAlreadyGranted() {
-      try {
-        // Safari has no permissions.query for geolocation. Not knowing is
-        // treated as not granted, which costs a returning Safari user one
-        // prompt on the drawer rather than a broken page.
-        const permission = await navigator.permissions?.query({
-          name: 'geolocation',
-        });
-
-        return permission?.state === 'granted';
-      } catch {
-        return false;
-      }
-    },
-
     locate() {
       return new Promise<Coordinates | null>((resolve) => {
         if (!navigator.geolocation) {

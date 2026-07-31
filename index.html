@@ -69,6 +69,16 @@
     <main class="app" id="app">
       <section class="session">
         <div class="session__instrument">
+          <!--
+            Above the dial, and empty until there is something to say.
+
+            A line that reads "unavailable" would sit over the countdown for
+            good on any device that will not give a position — so nothing is
+            said instead. The space it will occupy is reserved in CSS, so the
+            instrument below does not move when the reading arrives.
+          -->
+          <p class="weather" data-weather aria-live="polite"></p>
+
           <div class="dial" aria-hidden="true">
             <span class="dial__hand"></span>
           </div>
@@ -188,17 +198,6 @@
           />
         </label>
       </div>
-
-      <!--
-        Weather lives in a drawer, not beside the clock. A focus session is
-        paused the moment the user looks away, so a figure that changes on its
-        own has no business sharing the screen with the countdown.
-
-        aria-live, because the line is filled in after the panel opens: without
-        it, a screen reader user is told "Locating…" and never told the answer.
-      -->
-      <h3 class="drawer__section">Weather</h3>
-      <p class="weather" data-weather aria-live="polite">Locating…</p>
     </aside>
 
     <aside
