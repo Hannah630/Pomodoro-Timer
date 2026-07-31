@@ -74,8 +74,17 @@
   display: grid;
   place-items: center;
   min-height: 100dvh;
-  /* Top padding clears the fixed toolbar on narrow screens. */
-  padding: calc(var(--space-l) + 2.5rem) var(--space-m) var(--space-l);
+  /**
+   * Top padding clears the fixed toolbar on narrow screens; the four safe
+   * insets clear the hardware. All four are needed here and only here: this
+   * is the one box that spans the whole screen, and it holds the Start and
+   * Reset buttons, which without the bottom inset sit under the home
+   * indicator on a gesture-navigation phone.
+   */
+  padding: calc(var(--space-l) + 2.5rem + var(--safe-top))
+    calc(var(--space-m) + var(--safe-right))
+    calc(var(--space-l) + var(--safe-bottom))
+    calc(var(--space-m) + var(--safe-left));
 }
 
 /**
@@ -645,10 +654,15 @@
  * root, and the drawer is marked inert while shut to keep it out of the tab
  * order.
  */
+/**
+ * Pinned to the top right, which on a phone is the corner the notch and the
+ * rounded edge both reach into — so both insets are added here. The other two
+ * are not: nothing in this row goes near the bottom or the left.
+ */
 .toolbar {
   position: fixed;
-  top: var(--space-m);
-  right: var(--space-m);
+  top: calc(var(--space-m) + var(--safe-top));
+  right: calc(var(--space-m) + var(--safe-right));
   z-index: 3;
   display: flex;
   gap: var(--space-xs);
@@ -717,7 +731,16 @@
   flex-direction: column;
   gap: var(--space-m);
   width: min(22rem, 100%);
-  padding: calc(var(--space-l) + 40px) var(--space-m) var(--space-l);
+  /**
+   * Top clears the toolbar the drawer slides out under, bottom clears the
+   * home indicator, and the right inset clears the rounded edge it is
+   * anchored to. No left inset: the drawer only reaches the left edge when
+   * it is full width, which is portrait, where the side insets are zero
+   * anyway — adding it would pad a landscape drawer away from nothing.
+   */
+  padding: calc(var(--space-l) + 40px + var(--safe-top))
+    calc(var(--space-m) + var(--safe-right))
+    calc(var(--space-l) + var(--safe-bottom)) var(--space-m);
   border-left: 1px solid var(--line);
   background: var(--surface);
   transform: translateX(100%);

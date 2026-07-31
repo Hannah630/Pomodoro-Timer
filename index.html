@@ -2,7 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      viewport-fit=cover lets the page use the whole screen on a phone with
+      rounded corners or a notch — and makes env(safe-area-inset-*) report
+      something other than zero, which is what keeps the toolbar out from
+      under the notch and the buttons off the home indicator.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <!-- One per theme, so the browser chrome matches the page it frames. -->
     <meta
       name="theme-color"

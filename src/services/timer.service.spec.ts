@@ -98,6 +98,72 @@ describe('TimerService', () => {
     });
   });
 
+  describe('the deadline', () => {
+    it('is null until something is running', () => {
+      const { service } = createTimer();
+
+      expect(service.getEndAt()).toBeNull();
+    });
+
+    it('is the moment the running session reaches zero', () => {
+      const { service, advance } = createTimer();
+
+      advance(1_000);
+      service.start();
+
+      expect(service.getEndAt()).toBe(1_000 + FOCUS_MS);
+    });
+
+    it('is what is left, not the full length, when a pause is resumed', () => {
+      const { service, advance } = createTimer();
+
+      service.start();
+      advance(60_000);
+      service.pause();
+      advance(5 * 60_000);
+      service.start();
+
+      // Five minutes stopped do not count against the session, so the new
+      // deadline is a minute short of a full one from here.
+      expect(service.getEndAt()).toBe(6 * 60_000 + FOCUS_MS - 60_000);
+    });
+
+    it('is cleared by pausing, resetting and finishing', () => {
+      const { service, advance } = createTimer();
+
+      service.start();
+      service.pause();
+      expect(service.getEndAt()).toBeNull();
+
+      service.start();
+      service.reset();
+      expect(service.getEndAt()).toBeNull();
+
+      runToCompletion(service, advance);
+      expect(service.getEndAt()).toBeNull();
+    });
+  });
+
+  describe('the next mode', () => {
+    it('is what the current one hands over to', () => {
+      const { service, advance } = createTimer();
+
+      expect(service.getNextMode()).toBe('break');
+
+      runToCompletion(service, advance);
+
+      expect(service.getNextMode()).toBe('focus');
+    });
+
+    it('follows a mode chosen by hand', () => {
+      const { service } = createTimer();
+
+      service.selectMode('break');
+
+      expect(service.getNextMode()).toBe('focus');
+    });
+  });
+
   describe('choosing a mode by hand', () => {
     it('switches to the chosen mode, stopped and at full length', () => {
       const { service, advance } = createTimer();
