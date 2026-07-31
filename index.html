@@ -188,6 +188,17 @@
           />
         </label>
       </div>
+
+      <!--
+        Weather lives in a drawer, not beside the clock. A focus session is
+        paused the moment the user looks away, so a figure that changes on its
+        own has no business sharing the screen with the countdown.
+
+        aria-live, because the line is filled in after the panel opens: without
+        it, a screen reader user is told "Locating…" and never told the answer.
+      -->
+      <h3 class="drawer__section">Weather</h3>
+      <p class="weather" data-weather aria-live="polite">Locating…</p>
     </aside>
 
     <aside

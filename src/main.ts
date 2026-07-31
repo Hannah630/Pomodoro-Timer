@@ -3,11 +3,14 @@ import './styles/layout.css';
 
 import type { TimerSettings, TimerState } from './models/timer.model';
 import { createFrameScheduler } from './services/frame-scheduler';
+import { createGeolocationService } from './services/geolocation.service';
 import { createHistoryStorage } from './services/history-storage';
+import { fetchJson } from './services/network';
 import { createNotificationService } from './services/notification.service';
 import { createSessionService } from './services/session.service';
 import { createStorageService } from './services/storage.service';
 import { TimerService } from './services/timer.service';
+import { createWeatherService } from './services/weather.service';
 import { createAnnouncerView } from './ui/announcer-view';
 import { createControlsView } from './ui/controls-view';
 import { createDocumentTitleView } from './ui/document-title-view';
@@ -26,6 +29,7 @@ import { createSettingsView } from './ui/settings-view';
 import { watchForShortcuts } from './ui/shortcuts';
 import { createTimerView } from './ui/timer-view';
 import { createTitleView } from './ui/title-view';
+import { createWeatherView } from './ui/weather-view';
 
 /**
  * Application entry point.
@@ -113,12 +117,26 @@ const settingsView = createSettingsView(document, {
   onChange: (patch) => applySettings(patch),
 });
 
+const geolocation = createGeolocationService();
+// Outside #app: the line lives in the settings drawer, which spans the
+// viewport rather than the layout.
+const weatherView = createWeatherView(document);
+const weather = createWeatherService({
+  storage: localStorage,
+  fetchJson,
+  locate: () => geolocation.locate(),
+});
+
 const drawers = createDrawerGroup(queryElement(document, '[data-scrim]'));
 
 drawers.add({
   toggle: queryElement(document, '[data-settings-toggle]'),
   panel: queryElement(document, '[data-settings-drawer]'),
   openClass: 'is-settings-open',
+  // Asked for on opening rather than on loading. A permission prompt in the
+  // first second of a page is a demand from something the user has not looked
+  // at yet; here it arrives with the panel that explains it.
+  onOpen: () => void showWeather(),
 });
 
 drawers.add({
@@ -212,6 +230,40 @@ function renderHistory(): void {
   );
 }
 
+/** Set while a request is out, so opening the drawer twice asks once. */
+let locating = false;
+
+/**
+ * Puts the weather on screen, fetching it only if there is nothing current.
+ *
+ * The stored reading is shown without a request and without a location: half
+ * an hour of opening and closing this panel costs one of each.
+ */
+async function showWeather(): Promise<void> {
+  const stored = weather.cached();
+
+  if (stored !== null) {
+    weatherView.render({ status: 'ready', weather: stored });
+    return;
+  }
+
+  if (locating) {
+    return;
+  }
+
+  locating = true;
+  weatherView.render({ status: 'locating' });
+
+  const reading = await weather.load();
+
+  locating = false;
+  weatherView.render(
+    reading === null
+      ? { status: 'unavailable' }
+      : { status: 'ready', weather: reading },
+  );
+}
+
 /**
  * The form is rendered from what the service accepted, not from what was
  * typed, so a clamped value appears in the field straight away.
@@ -278,6 +330,21 @@ render(timer.getState());
 settingsView.render(timer.getSettings());
 titleView.setValue(session.getTitle());
 renderHistory();
+
+/**
+ * Someone who has already granted location gets the weather without being
+ * asked a second time; someone who has not is left alone until they open the
+ * panel it appears in.
+ *
+ * Fire and forget: a browser that cannot answer the question — Safari has no
+ * permissions query for geolocation — has said no, and nothing else on the
+ * page is waiting on the answer.
+ */
+void geolocation.isAlreadyGranted().then((granted) => {
+  if (granted) {
+    void showWeather();
+  }
+});
 
 // A background tab throttles the interval, so the display can be several
 // seconds stale by the time the user comes back. One tick on return recomputes

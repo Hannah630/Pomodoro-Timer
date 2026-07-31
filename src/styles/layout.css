@@ -635,6 +635,32 @@
   text-transform: uppercase;
 }
 
+/**
+ * A heading for a second group inside a panel that already has a title.
+ *
+ * Set like .drawer__title and separated by a rule rather than by size: the
+ * panel's own title should stay the largest thing in it.
+ */
+.drawer__section {
+  margin: 0;
+  padding-top: var(--space-m);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Read, not scanned — so the narrow tracking, like the other figures. */
+.weather {
+  margin: calc(var(--space-m) * -1 + var(--space-xs)) 0 0;
+  color: var(--text);
+  font-size: var(--step-label);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-meta);
+}
+
 .drawer__summary {
   margin: 0;
   color: var(--text);

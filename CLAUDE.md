@@ -80,11 +80,12 @@ the contents on; the exception is history records, which go straight to the
 screen with nothing downstream to reject them, so they are validated field by
 field.
 
-**Two storage keys.** `pomodoro-timer` (settings, lifetime counters) and
-`pomodoro-timer:history`. History grows, settings do not, and a corrupted
-history cannot take the settings down with it. Settings are versioned with a
-**chained** migration (v1 → v2 → v3): a new version describes only the
-difference it introduces.
+**Three storage keys.** `pomodoro-timer` (settings, lifetime counters),
+`pomodoro-timer:history` and `pomodoro-timer:weather`. History grows, settings
+do not, and the weather is disposable — kept apart so that a corrupted one
+cannot take the others down with it. Settings are versioned with a **chained**
+migration (v1 → v2 → v3): a new version describes only the difference it
+introduces.
 
 **Side-effect sources are injected**, not imported: `now()`, `createId()`, and
 a two-method `KeyValueStorage` instead of `Storage`. This is what lets a 25
@@ -101,11 +102,12 @@ clock.
 ## Testing
 
 Pure functions are exported from the module that uses them and tested there
-(`labels.ts`, `history-format.ts`, `settings-view.ts`). Services that are
-nothing but browser side effects — `notification.service.ts`, `focus-guard.ts`
-— have no specs; mocking `AudioContext` and `Notification` would only assert
-that the calls written are the calls written. That is a deliberate gap, so
-changes there need manual checking.
+(`labels.ts`, `history-format.ts`, `weather-format.ts`, `settings-view.ts`).
+Services that are nothing but browser side effects —
+`notification.service.ts`, `focus-guard.ts`, `geolocation.service.ts`,
+`network.ts` — have no specs; mocking `AudioContext`, `Notification` or
+`fetch` would only assert that the calls written are the calls written. That
+is a deliberate gap, so changes there need manual checking.
 
 ## TypeScript
 

@@ -265,6 +265,26 @@
 - [ ] 驗收：見手動驗收清單
 - [ ] **未做**：把時鐘移進錶盤中心。需要在瀏覽器裡反覆看，留給有畫面的人
 
+## Stage 21 — 天氣　`feat/weather`
+
+範圍刻意小：Settings 抽屜底部**一行**，不是主畫面上的一塊。
+
+- [x] `models/weather.model.ts`：型別、WMO 代碼對照、30 分鐘的快取期限
+- [x] `services/geolocation.service.ts`：`navigator.geolocation` 的包裝。沒有
+      API、被拒絕、逾時，三種都收斂成 `null`
+- [x] 定位分兩段：`permissions.query` 說授權過就靜默取得；沒授權過等到抽屜打開
+      才問。為此 `DrawerConfig` 多了 `onOpen`
+- [x] `services/weather.service.ts`：Open-Meteo（**免金鑰**，因為 Pages 是靜態
+      主機藏不住 key）、座標降到小數兩位、第三把 storage key、注入
+      `fetchJson` / `locate` / `now` 三個 port
+- [x] `ui/weather-format.ts`：WMO 代碼轉字、時區轉地名、整數度數（純函式，有測）
+- [x] `ui/weather-view.ts`：`locating` / `ready` / `unavailable` 三態 union
+- [x] 28 個新測試（133 → 161）
+- [ ] 驗收：見手動驗收清單
+- [ ] **未做**：把天氣接進休息建議（「外面在下雨，這次休息待在室內」）。那才是
+      讓天氣不只是裝飾的做法，但它會動到 `formatCompletion()` 的語意，不屬於
+      「小」這個範圍
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑
@@ -335,3 +355,16 @@
       "Focus finished. Up next: break"
 - [ ] 系統開啟「減少動態」後，時間到仍看得到色彩變化，只是變淡
 - [ ] 連續兩段同類型的 session 結束，第二次仍然會播報
+
+### 天氣
+
+- [ ] 第一次開 Settings 抽屜才跳定位權限視窗，**載入頁面時不會跳**
+- [ ] 允許之後那一行變成 `Taipei · 27° · 26–35° · Partly cloudy`
+- [ ] 重整後再開抽屜：立刻顯示，DevTools Network 沒有新的 open-meteo 請求
+      （30 分鐘內走快取），也不會再問一次定位
+- [ ] 拒絕權限 → 顯示 `Weather unavailable`，**計時完全不受影響**
+- [ ] DevTools 切成 Offline 再清掉 `pomodoro-timer:weather` → 一樣是
+      `Weather unavailable`，不是空白也不是當掉
+- [ ] localStorage 塞亂碼進 `pomodoro-timer:weather` → 重新抓，設定與歷史不受影響
+- [ ] 連開連關抽屜五次，Network 只有一次請求
+- [ ] 螢幕閱讀器：開抽屜聽到 "Locating…"，拿到之後會再讀出那一行

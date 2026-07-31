@@ -280,6 +280,7 @@ localStorage key 為 `pomodoro-timer`，內容是：
 ```
 pomodoro-timer          設定與完成次數
 pomodoro-timer:history  { "version": 1, "records": [...] }
+pomodoro-timer:weather  { "version": 1, "fetchedAt": …, "weather": {...} }
 ```
 
 分開的理由：歷史會一直長大而設定不會，寫一邊不必重寫另一邊；而且**歷史壞掉不會
@@ -308,6 +309,58 @@ pomodoro-timer:history  { "version": 1, "records": [...] }
 
 `HistoryStorage` 的 `now()` 一樣是注入的，否則 90 天的期限得等 90 天才能測。
 
+## 天氣：定位、快取與三種失敗
+
+一行天氣放在 Settings 抽屜底部，不放在時鐘旁邊。理由跟專注鎖定同一個：這支 app
+會在使用者一離開就暫停 focus，那就沒有道理在倒數旁邊擺一個自己會變的數字。
+
+### 資料來源為什麼是 Open-Meteo
+
+這個站部署在 GitHub Pages，**靜態主機沒有地方藏祕密**。任何需要 API key 的服務，
+那把 key 都會跟著 bundle 一起送到每個訪客手上。Open-Meteo 不需要金鑰，這是選它
+的唯一理由，不是因為它的資料比較好。
+
+送出的座標會先 `toFixed(2)`（約一公里）。天氣不會隔一條街就不同，一個離開這台
+機器的請求沒有必要帶著比答案更精確的位置。
+
+### 什麼時候問定位
+
+分兩段，因為「自動」跟「一開頁面就跳權限視窗」不是同一件事：
+
+| 情況 | 行為 |
+| --- | --- |
+| `navigator.permissions.query` 說已經授權過 | 載入時**靜默**定位並取得天氣 |
+| 沒授權過，或瀏覽器答不出來（Safari） | 等到**第一次打開 Settings 抽屜**才問 |
+
+第二列就是 `DrawerConfig.onOpen` 存在的原因。權限視窗出現在使用者剛好在看的那
+個面板上，比出現在他還沒看過的頁面上有交代得多。
+
+### 三種失敗都是 null
+
+沒有 geolocation API（純 HTTP）、使用者拒絕、裝置定不到位而逾時、網路不通、回
+傳的形狀變了——`WeatherService` 一律回 `null`，不丟例外。天氣是倒數旁邊的裝飾
+品，它的任何一種失敗都不值得打斷任何人。畫面顯示 `Weather unavailable`，而不是
+留一行空白：空白看起來像壞掉。
+
+### 兩種形狀，兩個驗證
+
+`toWeather()` 認的是 Open-Meteo 的回應，`isWeather()` 認的是存進 localStorage 的
+那四個值。看起來重複，但**存檔裡放的是本專案決定的欄位名，不是對方的**——否則
+對方改一次欄位名，就變成一次使用者端的資料遷移。
+
+快取 30 分鐘（`WEATHER_MAX_AGE_MS`）。夠久，所以反覆開關抽屜只會有一次請求與一
+次定位；夠短，所以數字不會過期，也限制了「帶著舊位置移動」最多能錯多久。
+
+### 地名是時區推出來的
+
+`Asia/Taipei` → `Taipei`。省掉一次反向地理編碼的請求，代價是它其實是**時區的代表
+城市**：人在高雄也會看到 Taipei。接受這個誤差，因為這個名字的用途是「確認定位成
+功了」，不是報出所在地。
+
+`geolocation.service.ts` 與 `network.ts` 沒有測試，理由跟 `notification.service`
+一樣：裡面除了呼叫瀏覽器 API 之外沒有別的東西。有規則的部分都在
+`weather.service.ts`（注入 port）與 `weather-format.ts`（純函式）裡，那兩個有測。
+
 ## 已決定的取捨（MVP）
 
 | 決策 | 理由 |
@@ -329,9 +382,9 @@ Vitest 跑在 **node** 環境，沒有 jsdom。這是刻意的：不裝 jsdom �
 
 | 對象 | 怎麼測 | 例子 |
 | --- | --- | --- |
-| Service | 完整的單元測試 | `timer.service`、`session.service`、兩個 storage |
-| 純函式 | 從使用它的模組匯出，就地測 | `labels.ts`、`history-format.ts`、`settings-view.ts` 的 `parseCount` |
-| 純副作用 | **不測** | `notification.service.ts`、`focus-guard.ts` |
+| Service | 完整的單元測試 | `timer.service`、`session.service`、兩個 storage、`weather.service` |
+| 純函式 | 從使用它的模組匯出，就地測 | `labels.ts`、`history-format.ts`、`weather-format.ts`、`settings-view.ts` 的 `parseCount` |
+| 純副作用 | **不測** | `notification.service.ts`、`focus-guard.ts`、`geolocation.service.ts`、`network.ts` |
 
 第二類是關鍵：一個 view 裡真正有規則的部分（怎麼算今天的總計、按鈕該顯示什麼
 字、打進去的字算不算數字）都可以抽成不碰 DOM 的函式，抽出來之後它就跟 service
