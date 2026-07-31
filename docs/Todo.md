@@ -208,6 +208,19 @@
 - [x] `deploy.yml` 補上 lint（不含格式檢查——排版問題不該擋住線上更新）
 - [ ] 驗收：開一條 PR 確認 CI 跑得起來且擋得住失敗
 
+### 19.3 三個小功能　`feat/small-affordances`
+
+- [x] Task 標題存進主存檔，重整後還在（不需升版本，缺欄位就回退成空字串）
+- [x] 還原的標題也走 `normalizeTitle()`——storage 只檢查型別，不檢查長度
+- [x] `document-title-view.ts`：計時中分頁標題顯示 `25:00 · Focus`
+- [x] `formatDocumentTitle()` 抽成純函式並就地測；只有 running 才掛倒數
+- [x] `shortcuts.ts`：Space 走主按鈕、R 走 Reset
+- [x] `resolveShortcut()` 純函式，四個「不該觸發」的條件全部可測
+- [x] 快捷鍵呼叫按鈕的 `click()` 而不是複製 handler——順帶保住 user
+      activation，全螢幕與音效解鎖才不會失效
+- [x] `DrawerGroup.isAnyOpen()`：抽屜是模態，開著時全域快捷鍵不作用
+- [ ] 驗收：見手動驗收清單
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑
@@ -215,8 +228,7 @@
 - [ ] Web Worker 計時，解決背景分頁通知延遲
 - [ ] 統計、任務標籤、歷史紀錄
 - [ ] 深色模式、音效選擇、音量控制
-- [ ] `document.title` 同步倒數
-- [ ] PWA、鍵盤快捷鍵、i18n
+- [ ] PWA、i18n
 
 ## 手動驗收清單
 
@@ -244,9 +256,19 @@
 
 - [ ] 改成 10 秒後 Reset 從 00:10 開始
 - [ ] 輸入 0 / -5 / `abc` / 空白都不會壞，欄位會顯示被修正後的值
-- [ ] 重整後設定、完成次數、All time 與歷史都還在
+- [ ] 重整後設定、完成次數、All time、歷史與 **Task 標題**都還在
 - [ ] localStorage 塞亂碼進 `pomodoro-timer` → 仍然用預設值開得起來
 - [ ] 塞亂碼進 `pomodoro-timer:history` → 歷史清空但**設定不受影響**
+
+### 鍵盤與分頁
+
+- [ ] 焦點在 Task 欄位時打 `r` 與空白鍵只會打字，不會動到計時
+- [ ] 點空白處後按 Space 開始 / 暫停，按 R 重設
+- [ ] 焦點停在 Start 按鈕上按 Space → **只切換一次**，不是兩次
+- [ ] 抽屜開著時 Space 與 R 沒有反應
+- [ ] `Ctrl` + `R` 仍然是瀏覽器重新整理
+- [ ] 用 Space 開始 Focus 一樣會進全螢幕、一樣聽得到提示音
+- [ ] 計時中分頁標題顯示 `00:09 · Focus`；暫停後回到 `Pomodoro Timer`
 
 ### 介面
 

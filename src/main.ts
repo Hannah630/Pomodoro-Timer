@@ -21,6 +21,7 @@ import { summarizeToday } from './ui/history-format';
 import { MODE_LABELS } from './ui/labels';
 import { createModesView } from './ui/modes-view';
 import { createSettingsView } from './ui/settings-view';
+import { watchForShortcuts } from './ui/shortcuts';
 import { createTimerView } from './ui/timer-view';
 import { createTitleView } from './ui/title-view';
 
@@ -119,6 +120,14 @@ drawers.add({
   openClass: 'is-history-open',
   onClose: () => historyView.resetConfirm(),
 });
+
+watchForShortcuts(
+  {
+    onPrimary: () => controlsView.pressPrimary(),
+    onReset: () => controlsView.pressReset(),
+  },
+  () => drawers.isAnyOpen(),
+);
 
 function render(state: TimerState): void {
   timerView.render(state, {

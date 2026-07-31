@@ -11,7 +11,8 @@ Author: Hannah
 ## What it does
 
 - Focus and break sessions, 25 and 5 minutes by default, switchable by hand
-- Start, pause, resume and reset
+- Start, pause, resume and reset, by mouse or with Space and R
+- The countdown shows in the browser tab while it runs
 - Goes fullscreen while focusing, and pauses itself if you switch away
 - An analog dial: one revolution is the session, the hand tracks what is left
 - Chimes, washes the screen and raises a desktop notification when time is up
