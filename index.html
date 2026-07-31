@@ -31,6 +31,46 @@
     -->
     <link rel="icon" href="/tomato.svg" type="image/svg+xml" />
 
+    <!--
+      Installable, so the timer can be opened from the home screen instead of
+      from a tab.
+
+      Not only a convenience. In a tab the browser's own bars sit over the
+      notch and the home indicator, so every safe-area inset reads as zero
+      and the layout that clears them is never exercised. Run from the home
+      screen the page owns the whole screen — which is also what a native
+      shell will hand it, so this is the honest place to check that work.
+
+      Paths are relative inside the manifest, because this is served from
+      /Pomodoro-Timer/ on Pages and from the root inside a shell. Vite
+      rewrites the two absolute ones below with the configured base.
+    -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!--
+      iOS reads none of the above for this.
+
+      The home screen icon comes from apple-touch-icon and must be a PNG —
+      an SVG there is ignored, and what iOS falls back to is a screenshot of
+      the page. The standalone mode comes from apple-mobile-web-app-capable
+      rather than the manifest's display, which is what lets this be tested
+      over a plain http address on the local network, before anything is
+      deployed.
+
+      black-translucent puts the page under the status bar, which is the
+      point: it is the only setting that makes safe-area-inset-top anything
+      other than zero, and it is what a native iOS shell does by default. The
+      cost is that iOS then draws the clock and battery in white whatever the
+      page is doing, so the light theme has to be looked at.
+    -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Pomodoro" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
     <title>Pomodoro Timer</title>
   </head>
   <body>

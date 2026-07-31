@@ -333,6 +333,23 @@
 - [x] 6 個新測試（166 → 172）
 - [ ] 驗收：見手動驗收清單
 
+## Stage 24.5 — 可安裝　`feat/installable`
+
+不是為了做 PWA，是為了**有地方驗證 Stage 24 的安全區**——Safari 分頁裡四個
+inset 全是 0，那段 CSS 等於沒被測過。開發機 Windows、手機 iPhone、沒有 Mac，
+這條路不需要其中任何一樣。
+
+- [x] `public/manifest.webmanifest`，路徑全用相對值（Pages 與外殼根目錄都要成立）
+- [x] `apple-touch-icon`（**必須 PNG**，放 SVG 會被忽略、改用網頁截圖）、
+      `apple-mobile-web-app-capable`（**純 http 區網位址下也生效**，不必先部署）
+- [x] 狀態列 `black-translucent`：唯一會讓 `safe-area-inset-top` 不是 0 的設定，
+      也是原生 iOS 的預設行為。代價是白色的時間與電量，淺色主題要看一眼
+- [x] `public/icon.svg`：`tomato.svg` 是平鋪浮水印，當圖示不合適，另畫單顆置中版
+- [x] PNG 由 SVG 產出（`npx sharp-cli`，不進 devDependencies）
+- [ ] **不做** service worker：離線與通知都不是這一步要解的，開發中的快取只會
+      讓人懷疑改的東西沒生效。現在是「可安裝」，不是「可離線」
+- [ ] 驗收：見手動驗收清單
+
 ## Stage 25 — Capacitor 測試封裝　`feat/capacitor`（未開始）
 
 - [ ] `src/platform/`，動態 import 隔開，`services` 與 `ui` 維持零 runtime 相依
@@ -355,7 +372,8 @@
 - [ ] Web Worker 計時，解決背景分頁通知延遲
 - [ ] 統計、任務標籤、歷史紀錄
 - [ ] 深色模式、音效選擇、音量控制
-- [ ] PWA、i18n
+- [ ] PWA 的**離線**部分（service worker）。可安裝的部分 Stage 24.5 做掉了
+- [ ] i18n
 
 ## 手動驗收清單
 
@@ -391,6 +409,14 @@
 
 把網頁加入主畫面、從主畫面圖示打開，頁面才會拿到整個螢幕，才是 Capacitor 之後
 會跑的那個模式。下面的「安全區」那幾條要在這個模式下驗才算數。
+
+Safari 分享鈕 → **加入主畫面**。因為 `apple-mobile-web-app-capable` 的關係，
+`http://192.168.x.x:5173` 這個位址加進去也會是 standalone，不必先部署。
+
+- [ ] 主畫面上的圖示是**紅底番茄**，不是網頁截圖（截圖代表 PNG 沒被讀到）
+- [ ] 名稱顯示 `Pomodoro`
+- [ ] 點開之後**看不到 Safari 的網址列與底部工具列**（沒有的話是 standalone
+      沒生效，下面整組安全區就白測了）
 
 （Android 的話有 `chrome://inspect` 的 port forwarding 可以把 `localhost:5173`
 轉給手機，連通知與定位都能測。這裡用不到，記著備用。）
@@ -488,6 +514,9 @@
 - [ ] **橫式**：轉過去之後上面兩條仍然成立——橫式才會有左右 inset
 - [ ] 橫式開抽屜：內容沒有貼到圓角，Clear history 按得到
 - [ ] 桌機瀏覽器再看一次：版面**沒有多出空白**（inset 應為 0）
+- [ ] 狀態列的時間與電量**兩套主題下都讀得清楚**。`black-translucent` 會強迫
+      iOS 畫成白色，所以淺色主題是這條的重點；不行的話就把它改回 `default`，
+      代價是頂部 inset 變 0
 
 **觸控與版面**
 
