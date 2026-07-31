@@ -43,7 +43,10 @@ export function watchForLeaving(onLeave: () => void): void {
 export function enterFullscreen(): void {
   const root = document.documentElement;
 
-  if (document.fullscreenElement || typeof root.requestFullscreen !== 'function') {
+  if (
+    document.fullscreenElement ||
+    typeof root.requestFullscreen !== 'function'
+  ) {
     return;
   }
 

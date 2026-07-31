@@ -1,12 +1,5 @@
-import {
-  SECONDS_PER_MINUTE,
-  type TimerSettings,
-} from '../models/timer.model';
-import {
-  readItem,
-  writeItem,
-  type KeyValueStorage,
-} from './key-value-storage';
+import { SECONDS_PER_MINUTE, type TimerSettings } from '../models/timer.model';
+import { readItem, writeItem, type KeyValueStorage } from './key-value-storage';
 
 export const STORAGE_KEY = 'pomodoro-timer';
 
@@ -27,6 +20,8 @@ export interface PersistedState {
   readonly completedFocusCount: number;
   /** Lifetime focus time, kept beside the count for the same reason. */
   readonly totalFocusMs: number;
+  /** What the user is working on, so a reload does not ask them again. */
+  readonly title: string;
 }
 
 export interface StorageService {
@@ -42,9 +37,7 @@ export interface StorageService {
  * already validates everything it is handed, so there is no second copy of
  * that rule here.
  */
-export function createStorageService(
-  storage: KeyValueStorage,
-): StorageService {
+export function createStorageService(storage: KeyValueStorage): StorageService {
   return {
     load() {
       const raw = readItem(storage, STORAGE_KEY);
@@ -74,6 +67,10 @@ export function createStorageService(
         // Only ever written by version 3; older saves start it from zero,
         // which is the one honest answer available.
         totalFocusMs: readCount(parsed['totalFocusMs']),
+        // Checked for shape only. What makes a title acceptable — trimming,
+        // the length cap, not splitting an emoji — is the session service's
+        // rule, and it applies it to everything it is given.
+        title: typeof parsed['title'] === 'string' ? parsed['title'] : '',
       };
     },
 

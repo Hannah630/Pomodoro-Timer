@@ -33,7 +33,10 @@ jobs:
       - run: npm ci
 
       # A failing build should not reach the site, and neither should a
-      # failing test suite.
+      # failing test suite. Formatting is not checked here: a badly wrapped
+      # line is not a reason to leave the published site stale, and CI has
+      # already said so on the branch.
+      - run: npm run lint
       - run: npm test
       - run: npm run build
 

@@ -14,6 +14,14 @@ export interface DrawerConfig {
 
 export interface DrawerGroup {
   add(config: DrawerConfig): Drawer;
+
+  /**
+   * Whether any panel is currently showing.
+   *
+   * A drawer covers the timer and dims what is behind it, so it behaves as a
+   * modal — and global shortcuts have no business firing underneath one.
+   */
+  isAnyOpen(): boolean;
 }
 
 /**
@@ -41,6 +49,8 @@ export function createDrawerGroup(scrim: HTMLElement): DrawerGroup {
   });
 
   return {
+    isAnyOpen: () => drawers.some((drawer) => drawer.isOpen()),
+
     add({ toggle, panel, openClass, onClose }) {
       let open = false;
 

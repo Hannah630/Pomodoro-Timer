@@ -53,7 +53,9 @@ export function createSettingsView(
     const secondsInput = queryElement<HTMLInputElement>(root, seconds);
 
     // Taken from the model so the ceiling is stated in exactly one place.
-    minutesInput.max = String(Math.floor(MAX_SESSION_SECONDS / SECONDS_PER_MINUTE));
+    minutesInput.max = String(
+      Math.floor(MAX_SESSION_SECONDS / SECONDS_PER_MINUTE),
+    );
 
     const field = { minutesInput, secondsInput, key };
 
@@ -107,7 +109,9 @@ function readTotalSeconds(field: DurationField): number | null {
 }
 
 function writeField(field: DurationField, totalSeconds: number): void {
-  field.minutesInput.value = String(Math.floor(totalSeconds / SECONDS_PER_MINUTE));
+  field.minutesInput.value = String(
+    Math.floor(totalSeconds / SECONDS_PER_MINUTE),
+  );
   field.secondsInput.value = String(totalSeconds % SECONDS_PER_MINUTE);
 }
 

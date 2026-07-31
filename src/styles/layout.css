@@ -16,8 +16,8 @@
   inset: 0;
   background: var(--mode-focus);
   opacity: var(--watermark-opacity);
-  -webkit-mask: url('/tomato.svg') repeat 0 0 /
-    var(--watermark-tile) var(--watermark-tile);
+  -webkit-mask: url('/tomato.svg') repeat 0 0 / var(--watermark-tile)
+    var(--watermark-tile);
   mask: url('/tomato.svg') repeat 0 0 / var(--watermark-tile)
     var(--watermark-tile);
   pointer-events: none;
@@ -174,10 +174,12 @@
   color: var(--muted);
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease,
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
     color 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -190,21 +192,27 @@
 .mode--active {
   border-color: var(--mode);
   background: var(--mode);
-  color: var(--ink);
+  color: var(--on-mode);
 }
 
 .mode:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 3px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
+/**
+ * A figure, not a label.
+ *
+ * It used to be set like the mode buttons above it — uppercase and widely
+ * tracked — which made a passing count look as much like a control as the
+ * control did. Read as a number instead, and it stops competing.
+ */
 .session__today {
   margin: 0;
   color: var(--muted);
   font-size: var(--step-label);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  letter-spacing: var(--tracking-meta);
 }
 
 /**
@@ -223,7 +231,7 @@
   color: var(--muted);
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.3em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 
@@ -236,7 +244,9 @@
   color: var(--text);
   font-size: var(--step-title);
   text-align: center;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .task__input::placeholder {
@@ -253,14 +263,16 @@
 }
 
 .task__input:focus-visible {
-  outline: 2px solid var(--mode);
-  outline-offset: 3px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .session__time {
   margin: 0;
   font-size: var(--step-clock);
-  font-weight: 800;
+  /* 700, not 800: the system stack has no 800, so the browser synthesises
+     one by smearing the 700 outwards, and it shows at this size. */
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.045em;
   line-height: 0.82;
@@ -279,12 +291,18 @@
   margin: 0 0.15em;
 }
 
+/**
+ * A sentence explaining why the timer stopped, so it is set to be read.
+ *
+ * It was uppercase in the mode colour, which in focus is the same red the
+ * app uses for nothing else — it read as an error rather than as a state,
+ * and the state it describes is an ordinary one.
+ */
 .session__hint {
   margin: 0;
-  color: var(--mode);
+  color: var(--text);
   font-size: var(--step-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: var(--tracking-meta);
 }
 
 /* "Start long break" is a wide button; let it drop to its own line if need be. */
@@ -304,10 +322,12 @@
   border-radius: 999px;
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-action);
   text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 150ms ease, border-color 150ms ease;
+  transition:
+    opacity 150ms ease,
+    border-color 150ms ease;
 }
 
 .button:hover {
@@ -315,13 +335,13 @@
 }
 
 .button:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 3px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .button--primary {
   background: var(--mode);
-  color: var(--ink);
+  color: var(--on-mode);
 }
 
 .button--secondary {
@@ -351,7 +371,7 @@
   flex: 1;
   color: var(--muted);
   font-size: var(--step-label);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-meta);
 }
 
 .field__input {
@@ -366,10 +386,11 @@
   text-align: right;
 }
 
+/* The border also takes the mode colour: two boxes on a row, one active. */
 .field__input:focus-visible {
   border-color: var(--mode);
-  outline: 2px solid var(--mode);
-  outline-offset: 1px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* Column headings, so the two boxes on each row need no label of their own. */
@@ -380,7 +401,7 @@
   margin: 0;
   color: var(--muted);
   font-size: var(--step-label);
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-action);
   text-transform: uppercase;
 }
 
@@ -418,7 +439,7 @@
   color: var(--muted);
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 
@@ -429,7 +450,7 @@
 
 .history__day-totals {
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-meta);
 }
 
 .history__rows {
@@ -487,7 +508,7 @@
   background: none;
   color: var(--muted);
   font-size: var(--step-label);
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-action);
   text-transform: uppercase;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -503,8 +524,8 @@
 }
 
 .history__clear:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 3px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /**
@@ -535,10 +556,12 @@
   color: var(--text);
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease,
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
     color 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -552,12 +575,12 @@
 .drawer-toggle[aria-expanded='true'] {
   border-color: var(--mode);
   background: var(--mode);
-  color: var(--ink);
+  color: var(--on-mode);
 }
 
 .drawer-toggle:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 3px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .scrim {
@@ -567,7 +590,9 @@
   visibility: hidden;
   background: var(--scrim);
   opacity: 0;
-  transition: opacity var(--transition-drawer), visibility var(--transition-drawer);
+  transition:
+    opacity var(--transition-drawer),
+    visibility var(--transition-drawer);
 }
 
 :root.is-history-open .scrim,
@@ -606,7 +631,7 @@
   color: var(--muted);
   font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.3em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 
@@ -641,5 +666,25 @@
   .drawer-toggle,
   .scrim {
     transition: none;
+  }
+
+  /**
+   * Softened rather than removed.
+   *
+   * This wash is the one signal that survives a muted tab and a refused
+   * notification permission, so switching it off would leave that user with
+   * nothing at all to say the session ended. It is a single fade of opacity
+   * rather than anything that travels, which is the mild end of what this
+   * preference is about — so it stays, at a strength that reads as a change
+   * in the room rather than a flash.
+   */
+  @keyframes alert-wash {
+    from {
+      opacity: 0.18;
+    }
+
+    to {
+      opacity: 0;
+    }
   }
 }

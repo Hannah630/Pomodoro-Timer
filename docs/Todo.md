@@ -2,6 +2,14 @@
 
 每個階段 = 一條分支 + 數個 commit + 一次驗收。
 
+> **關於未打勾的「驗收」。** 驗收有兩種：邏輯的由 `npm run test` 與
+> `npm run build` 守著，會在 CI 上自動跑；畫面的需要人坐在瀏覽器前面看。
+> Stage 2 起未打勾的驗收全部屬於後者，而它們**逐階段回頭補打勾已經沒有意義**
+> ——那些階段的程式碼早就被後面的階段改過好幾輪，勾的會是一個不存在的版本。
+>
+> 取而代之的是文件末尾那份[手動驗收清單](#手動驗收清單)：去重之後的當前版本
+> 該檢查什麼，一次跑完。
+
 ## Stage 0 — 專案初始化　`chore/project-setup`
 
 - [x] `package.json`（dev / build / preview / test scripts）
@@ -171,6 +179,92 @@
 > 網頁無法阻止使用者切換 app，這是瀏覽器的安全邊界。這裡做的是「拒絕把離開的
 > 時間算成專注」，不是真的鎖定。
 
+## Stage 19 — 收尾、可用性與工程化　`worktree-stage-19-polish`
+
+### 19.1 文件同步　`chore/docs-sync`
+
+- [x] `Architecture.md`：tick 250ms → 16ms，並說明為何需要一幀的密度
+- [x] `Architecture.md`：`--mode` 三選一 → 兩個模式
+- [x] `Architecture.md`：存檔 v1 → v3，補上版本表與鏈式遷移的理由
+- [x] `Architecture.md`：歷史 100 筆 → 500 筆 + 90 天，說明兩道限制為何都要
+- [x] `Architecture.md`：新增「時長的單位是秒」（Stage 15 從未寫進文件）
+- [x] `Architecture.md`：新增「測試策略」，取代過時的「只測 timer.service」
+- [x] `README.md`：整數分鐘 → 秒精度；100 筆 → 500 筆 / 90 天
+- [x] 刪 `.cursor/rules/02-angular.md`（空檔，且本專案無 Angular）
+- [x] 刪 `docs/Notes.md`（空檔）
+- [x] `index.html` 補 favicon，不再每次載入吃一個 404
+- [ ] README 截圖（需要瀏覽器，留給人做）
+
+### 19.2 工具鏈與 CI　`chore/tooling`
+
+- [x] Prettier + `.prettierrc`，`.prettierignore` 排除 `*.md`（中文表格會被排歪）
+- [x] `endOfLine: "auto"`——工作目錄是 CRLF，不設的話 42 個檔案全被判定要改
+- [x] oxlint 取代 ESLint：typescript-eslint 明確拒絕 TS 7，理由寫在架構文件
+- [x] `lint` / `format` / `format:check` 三個 script
+- [x] 全庫格式化（16 個檔案，都是換行位置）
+- [x] 移除 `vite.config.ts` 的 triple-slash reference——lint 抓到的，第 2 行的
+      `import` 已經帶進同一份型別，它從一開始就是多餘的
+- [x] `ci.yml`：PR 與非 main 分支跑 lint / format / test / build
+- [x] `deploy.yml` 補上 lint（不含格式檢查——排版問題不該擋住線上更新）
+- [ ] 驗收：開一條 PR 確認 CI 跑得起來且擋得住失敗
+
+### 19.3 三個小功能　`feat/small-affordances`
+
+- [x] Task 標題存進主存檔，重整後還在（不需升版本，缺欄位就回退成空字串）
+- [x] 還原的標題也走 `normalizeTitle()`——storage 只檢查型別，不檢查長度
+- [x] `document-title-view.ts`：計時中分頁標題顯示 `25:00 · Focus`
+- [x] `formatDocumentTitle()` 抽成純函式並就地測；只有 running 才掛倒數
+- [x] `shortcuts.ts`：Space 走主按鈕、R 走 Reset
+- [x] `resolveShortcut()` 純函式，四個「不該觸發」的條件全部可測
+- [x] 快捷鍵呼叫按鈕的 `click()` 而不是複製 handler——順帶保住 user
+      activation，全螢幕與音效解鎖才不會失效
+- [x] `DrawerGroup.isAnyOpen()`：抽屜是模態，開著時全域快捷鍵不作用
+- [ ] 驗收：見手動驗收清單
+
+### 19.4 排程與渲染　`perf/tick-scheduling`
+
+- [x] `tick-scheduler.ts`：`TickScheduler` 介面 + 預設的 interval 實作
+- [x] `frame-scheduler.ts`：rAF + 1 秒 interval 混合，`main.ts` 注入
+- [x] **既有 119 個測試一行都沒改**——預設值選對了才會這樣
+- [x] `startInterval` / `stopInterval` 更名為 `startTicking` / `stopTicking`
+      （它們已經不是 interval 了）
+- [x] `main.ts` 的 `render()` 分成「每幀」與「有變才畫」兩組
+- [x] `format.ts` 不再自己宣告一份 `SECONDS_PER_MINUTE`
+- [ ] 驗收：見手動驗收清單，特別是「背景分頁歸零仍會通知」那一項
+
+## Stage 20 — 主題與可近用性　`stage-20/design`
+
+### 20.1 缺陷修正
+
+- [x] `prefers-reduced-motion` 原本沒管到 `alert-wash`——全 app 幅度最大的動態
+      反而是唯一沒被處理的。改成**調弱**（0.5 → 0.18）而不是關掉：它是通知被拒
+      時唯一剩下的提示
+- [x] 加 `role="status"` 的 live region，時間到會播報。錶盤 `aria-hidden`、時鐘
+      `aria-live="off"`，在此之前螢幕閱讀器完全收不到結束訊號
+- [x] 通知與播報共用 `formatCompletion()`，不再各寫一份字串
+- [x] `--focus-ring` / `--focus-ring-offset`：六個元素原本有兩色兩 offset
+- [x] `--muted` 提亮（深色 4.8:1 → 6.0:1）
+
+### 20.2 淺色主題
+
+- [x] `@media (prefers-color-scheme: light)` 覆寫 5 個 token，其餘由
+      `color-mix` 自動翻面
+- [x] `--on-mode`：疊在模式色上的文字色，**不跟主題變**。原本用 `--ink`，
+      淺色主題下是 3.1:1
+- [x] `--surface` 在淺色主題要獨立指定——浮起來的面應該比背景亮
+- [x] `theme-color` 拆成兩個，各帶 `media`
+- [x] 兩套主題的所有文字組合都算過 ≥ 4.5:1，非文字 ≥ 3:1
+
+### 20.3 排版層級
+
+- [x] 字距分三級（`label` / `action` / `meta`），原本十個元素共用一種
+- [x] 今日次數與暫停原因改為「讀」的排版：不 uppercase、窄字距
+- [x] 今日次數移到時鐘下方，不再插在模式與時鐘之間
+- [x] 暫停原因不再用模式色（在 focus 是紅字，讀起來像錯誤）
+- [x] 時鐘字重 800 → 700：系統字體沒有 800，瀏覽器是合成出來的
+- [ ] 驗收：見手動驗收清單
+- [ ] **未做**：把時鐘移進錶盤中心。需要在瀏覽器裡反覆看，留給有畫面的人
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑
@@ -178,5 +272,66 @@
 - [ ] Web Worker 計時，解決背景分頁通知延遲
 - [ ] 統計、任務標籤、歷史紀錄
 - [ ] 深色模式、音效選擇、音量控制
-- [ ] `document.title` 同步倒數
-- [ ] PWA、鍵盤快捷鍵、i18n
+- [ ] PWA、i18n
+
+## 手動驗收清單
+
+自動的部分（`npm run test`、`npm run build`）不列在這裡——CI 會擋。這份清單只
+收**必須有人在瀏覽器前面才能確認**的事，是 Stage 2～18 那 17 項驗收去重後的
+當前版本。
+
+跑之前把 Focus 設成 10 秒、Break 設成 5 秒，否則光等就要一小時。
+
+### 計時
+
+- [ ] Start 開始倒數，百分秒流暢不抖，大字不跟著跳動
+- [ ] Pause 停住、再按接續，Reset 回到整段開頭
+- [ ] Focus 歸零 → 聽得到提示音、畫面色彩淡出一次、切到 Break
+- [ ] 分頁切到背景並等歸零 → **通知仍然出現**，回到前景時倒數不落後
+- [ ] 手動切換 Focus / Break 會重設成該模式的完整時長；重複點當前模式沒有反應
+
+### 專注鎖定
+
+- [ ] 按 Start 開始 Focus 會進入全螢幕
+- [ ] 計時中切到別的視窗 → 自動暫停，並顯示「你離開了」的提示
+- [ ] 拒絕通知權限的情況下，時間到仍有畫面提示，且 console 沒有錯誤
+
+### 設定與存檔
+
+- [ ] 改成 10 秒後 Reset 從 00:10 開始
+- [ ] 輸入 0 / -5 / `abc` / 空白都不會壞，欄位會顯示被修正後的值
+- [ ] 重整後設定、完成次數、All time、歷史與 **Task 標題**都還在
+- [ ] localStorage 塞亂碼進 `pomodoro-timer` → 仍然用預設值開得起來
+- [ ] 塞亂碼進 `pomodoro-timer:history` → 歷史清空但**設定不受影響**
+
+### 鍵盤與分頁
+
+- [ ] 焦點在 Task 欄位時打 `r` 與空白鍵只會打字，不會動到計時
+- [ ] 點空白處後按 Space 開始 / 暫停，按 R 重設
+- [ ] 焦點停在 Start 按鈕上按 Space → **只切換一次**，不是兩次
+- [ ] 抽屜開著時 Space 與 R 沒有反應
+- [ ] `Ctrl` + `R` 仍然是瀏覽器重新整理
+- [ ] 用 Space 開始 Focus 一樣會進全螢幕、一樣聽得到提示音
+- [ ] 計時中分頁標題顯示 `00:09 · Focus`；暫停後回到 `Pomodoro Timer`
+
+### 介面
+
+- [ ] Task 欄位一眼看得出可以打字；休息時整個欄位（含標籤）隱藏
+- [ ] Settings 與 History 兩個抽屜互斥，同時只能開一個
+- [ ] 抽屜可用 Escape 關閉、點遮罩關閉，關閉後焦點回到原本的按鈕
+- [ ] 只用鍵盤能走完：開抽屜 → 改設定 → 關抽屜 → 開始計時
+- [ ] 歷史按日期分組，捲動時日期標題吸頂，Clear history 要按兩次才清
+- [ ] 介面全英文（把瀏覽器語言改成中文再看一次）
+- [ ] 分頁圖示是番茄，DevTools Network 沒有 `favicon.ico` 的 404
+- [ ] 375px、740×360、1440px 三個尺寸都不破版
+
+### 主題與可近用性
+
+- [ ] 把系統切成淺色 → 整個介面翻面，抽屜比背景亮，瀏覽器上下欄配色跟著換
+- [ ] 淺色主題下 Start 按鈕與被選中的模式按鈕**是深色字**，不是淡色字
+- [ ] 兩套主題下 Task 欄位的 placeholder 都讀得清楚
+- [ ] Tab 走一遍所有控制項，焦點框到處都是同一個樣子
+- [ ] 開螢幕閱讀器（Windows 用 NVDA 或講述人），時間到會聽到
+      "Focus finished. Up next: break"
+- [ ] 系統開啟「減少動態」後，時間到仍看得到色彩變化，只是變淡
+- [ ] 連續兩段同類型的 session 結束，第二次仍然會播報

@@ -61,6 +61,20 @@ describe('session service', () => {
 
     expect(session.getTitle()).toBe('Write Q3 report');
   });
+
+  it('restores a title it is given', () => {
+    expect(createSessionService({ title: 'Fix login bug' }).getTitle()).toBe(
+      'Fix login bug',
+    );
+  });
+
+  it('normalizes a restored title, which storage does not check', () => {
+    const session = createSessionService({
+      title: `  ${'a'.repeat(MAX_TITLE_LENGTH + 5)}  `,
+    });
+
+    expect(session.getTitle()).toHaveLength(MAX_TITLE_LENGTH);
+  });
 });
 
 describe('session history', () => {

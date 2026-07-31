@@ -1,6 +1,7 @@
+import { SECONDS_PER_MINUTE } from '../models/timer.model';
+
 const MS_PER_CENTISECOND = 10;
 const CENTISECONDS_PER_SECOND = 100;
-const SECONDS_PER_MINUTE = 60;
 
 export interface Countdown {
   /** Minutes and seconds, "24:37". */
@@ -18,14 +19,10 @@ export interface Countdown {
  * hundredth the instant it starts, and it lands exactly on 00:00·00.
  */
 export function formatCountdown(ms: number): Countdown {
-  const totalCentiseconds = Math.ceil(
-    Math.max(0, ms) / MS_PER_CENTISECOND,
-  );
+  const totalCentiseconds = Math.ceil(Math.max(0, ms) / MS_PER_CENTISECOND);
 
   const centiseconds = totalCentiseconds % CENTISECONDS_PER_SECOND;
-  const totalSeconds = Math.floor(
-    totalCentiseconds / CENTISECONDS_PER_SECOND,
-  );
+  const totalSeconds = Math.floor(totalCentiseconds / CENTISECONDS_PER_SECOND);
   const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
 

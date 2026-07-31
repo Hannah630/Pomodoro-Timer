@@ -10,6 +10,18 @@ export interface ControlsHandlers {
 
 export interface ControlsView {
   render(state: TimerState): void;
+
+  /**
+   * Presses a button on the user's behalf, for the keyboard shortcuts.
+   *
+   * Clicking the real button rather than calling the handler directly. It
+   * keeps one definition of what the primary button means at any moment, and
+   * a click dispatched inside a keydown still carries user activation — which
+   * is what fullscreen, audio and the notification prompt all demand before
+   * they will do anything.
+   */
+  pressPrimary(): void;
+  pressReset(): void;
 }
 
 /**
@@ -38,6 +50,9 @@ export function createControlsView(
   });
 
   return {
+    pressPrimary: () => primaryButton.click(),
+    pressReset: () => resetButton.click(),
+
     render(state) {
       status = state.status;
 

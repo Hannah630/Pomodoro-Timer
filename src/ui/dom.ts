@@ -12,7 +12,9 @@ export function queryElement<T extends HTMLElement = HTMLElement>(
   const element = root.querySelector<T>(selector);
 
   if (!element) {
-    throw new Error(`Expected markup to contain an element matching ${selector}`);
+    throw new Error(
+      `Expected markup to contain an element matching ${selector}`,
+    );
   }
 
   return element;

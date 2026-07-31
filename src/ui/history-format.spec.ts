@@ -31,7 +31,9 @@ function record(finishedAt: number, durationMs = 1_500_000): SessionRecord {
 
 describe('isSameDay', () => {
   it('is true for two times on the same date', () => {
-    expect(isSameDay(at(2026, 7, 30, 9, 5), at(2026, 7, 30, 23, 59))).toBe(true);
+    expect(isSameDay(at(2026, 7, 30, 9, 5), at(2026, 7, 30, 23, 59))).toBe(
+      true,
+    );
   });
 
   it('is false across midnight', () => {

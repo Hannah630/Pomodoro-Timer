@@ -28,6 +28,7 @@ function storedPayload(overrides: Record<string, unknown> = {}): string {
     settings: { focusSeconds: 1800 },
     completedFocusCount: 3,
     totalFocusMs: 4500,
+    title: 'Write Q3 report',
     ...overrides,
   });
 }
@@ -46,6 +47,7 @@ describe('storage service', () => {
         settings: { focusSeconds: 1800 },
         completedFocusCount: 3,
         totalFocusMs: 4500,
+        title: 'Write Q3 report',
       };
 
       service.save(state);
@@ -70,7 +72,9 @@ describe('storage service', () => {
     it('ignores a save that is not an object', () => {
       expect(createStorageService(createFakeStorage('5')).load()).toBeNull();
       expect(createStorageService(createFakeStorage('null')).load()).toBeNull();
-      expect(createStorageService(createFakeStorage('[1,2]')).load()).toBeNull();
+      expect(
+        createStorageService(createFakeStorage('[1,2]')).load(),
+      ).toBeNull();
     });
 
     it('falls back to empty settings when the field is the wrong type', () => {
@@ -121,6 +125,32 @@ describe('storage service', () => {
         expect(service.load()?.totalFocusMs).toBe(expected);
       });
     });
+
+    // The field was added without bumping the version, so every save written
+    // before it exists has to read back as an empty title rather than as a
+    // reason to discard the save.
+    it('reads an empty title when it is missing or not a string', () => {
+      const cases: unknown[] = [undefined, 42, null, { text: 'hi' }];
+
+      cases.forEach((stored) => {
+        const service = createStorageService(
+          createFakeStorage(storedPayload({ title: stored })),
+        );
+
+        expect(service.load()?.title).toBe('');
+      });
+    });
+
+    // Length and whitespace are the session service's rules, and it applies
+    // them to whatever it is handed. Checking them twice would mean two
+    // places to change the limit.
+    it('passes an over-long title through, leaving the cap to the session', () => {
+      const service = createStorageService(
+        createFakeStorage(storedPayload({ title: 'a'.repeat(500) })),
+      );
+
+      expect(service.load()?.title).toHaveLength(500);
+    });
   });
 
   describe('upgrading an older save', () => {
@@ -148,6 +178,7 @@ describe('storage service', () => {
         settings: { focusSeconds: 1800, breakSeconds: 300 },
         completedFocusCount: 3,
         totalFocusMs: 0,
+        title: '',
       });
     });
 
@@ -188,7 +219,9 @@ describe('storage service', () => {
     });
 
     it('upgrades an empty settings object to an empty one', () => {
-      const service = createStorageService(createFakeStorage(oldPayload(1, {})));
+      const service = createStorageService(
+        createFakeStorage(oldPayload(1, {})),
+      );
 
       expect(service.load()?.settings).toEqual({});
     });
@@ -227,6 +260,7 @@ describe('storage service', () => {
           settings: {},
           completedFocusCount: 1,
           totalFocusMs: 1000,
+          title: '',
         }),
       ).not.toThrow();
     });

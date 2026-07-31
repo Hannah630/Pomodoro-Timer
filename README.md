@@ -11,19 +11,22 @@ Author: Hannah
 ## What it does
 
 - Focus and break sessions, 25 and 5 minutes by default, switchable by hand
-- Start, pause, resume and reset
+- Start, pause, resume and reset, by mouse or with Space and R
+- The countdown shows in the browser tab while it runs
 - Goes fullscreen while focusing, and pauses itself if you switch away
 - An analog dial: one revolution is the session, the hand tracks what is left
 - Chimes, washes the screen and raises a desktop notification when time is up
-- Name what you are working on, and read back the last 100 finished sessions
-- Durations are editable and held to whole minutes between 1 and 120
+- Name what you are working on, and read back what you finished
+- Durations are editable to the second, from 5 seconds to 2 hours
+- History keeps the last 500 sessions, or 90 days of them, whichever comes first
 - Settings, the session count and the history survive a reload
-- Works on a phone and on a desktop
+- Follows your system's light or dark theme, and its motion preference
+- Works on a phone and on a desktop, with a mouse, a keyboard or a screen reader
 
 ## Tech stack
 
 - Vite + TypeScript, no framework, plain DOM
-- Vitest for unit tests
+- Vitest for unit tests, oxlint and Prettier for the rest
 - No dependencies at runtime
 
 Live at <https://hannah630.github.io/Pomodoro-Timer/>, built and published by
@@ -36,7 +39,12 @@ npm install
 npm run dev      # dev server on http://localhost:5173
 npm run test     # unit tests
 npm run build    # type check + production build
+npm run lint     # oxlint
+npm run format   # prettier --write
 ```
+
+Every one of these except `dev` runs on CI, for pull requests and for pushes
+to any branch other than `main`.
 
 Notifications need a secure context, so use the dev server rather than opening
 `index.html` from the file system.

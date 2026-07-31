@@ -1,0 +1,36 @@
+name: CI
+
+# Deploy already runs the checks, but only after a merge to main — which is
+# the one moment when being told about a failure is too late. This runs them
+# on the branch instead, while there is still a branch to fix.
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+# A newer push to the same branch makes the older run irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Cheapest first: a lint error should not wait behind a build.
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+
+      # `build` is `tsc --noEmit` as well as the bundle, so this is the type
+      # check too.
+      - run: npm run build
