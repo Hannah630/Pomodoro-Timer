@@ -195,6 +195,19 @@
 - [x] `index.html` 補 favicon，不再每次載入吃一個 404
 - [ ] README 截圖（需要瀏覽器，留給人做）
 
+### 19.2 工具鏈與 CI　`chore/tooling`
+
+- [x] Prettier + `.prettierrc`，`.prettierignore` 排除 `*.md`（中文表格會被排歪）
+- [x] `endOfLine: "auto"`——工作目錄是 CRLF，不設的話 42 個檔案全被判定要改
+- [x] oxlint 取代 ESLint：typescript-eslint 明確拒絕 TS 7，理由寫在架構文件
+- [x] `lint` / `format` / `format:check` 三個 script
+- [x] 全庫格式化（16 個檔案，都是換行位置）
+- [x] 移除 `vite.config.ts` 的 triple-slash reference——lint 抓到的，第 2 行的
+      `import` 已經帶進同一份型別，它從一開始就是多餘的
+- [x] `ci.yml`：PR 與非 main 分支跑 lint / format / test / build
+- [x] `deploy.yml` 補上 lint（不含格式檢查——排版問題不該擋住線上更新）
+- [ ] 驗收：開一條 PR 確認 CI 跑得起來且擋得住失敗
+
 ## 第二階段（MVP 之後）
 
 - [ ] 進行中的計時在重整後續跑

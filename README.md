@@ -24,7 +24,7 @@ Author: Hannah
 ## Tech stack
 
 - Vite + TypeScript, no framework, plain DOM
-- Vitest for unit tests
+- Vitest for unit tests, oxlint and Prettier for the rest
 - No dependencies at runtime
 
 Live at <https://hannah630.github.io/Pomodoro-Timer/>, built and published by
@@ -37,7 +37,12 @@ npm install
 npm run dev      # dev server on http://localhost:5173
 npm run test     # unit tests
 npm run build    # type check + production build
+npm run lint     # oxlint
+npm run format   # prettier --write
 ```
+
+Every one of these except `dev` runs on CI, for pull requests and for pushes
+to any branch other than `main`.
 
 Notifications need a secure context, so use the dev server rather than opening
 `index.html` from the file system.

@@ -239,6 +239,30 @@ Vitest 跑在 **node** 環境，沒有 jsdom。這是刻意的：不裝 jsdom �
 後，測試斷言的只會是「我寫的呼叫就是我寫的呼叫」。這兩個檔案的改動需要人在瀏
 覽器前確認，`docs/Todo.md` 末尾的手動驗收清單就是為此存在。
 
+## 工具鏈：為什麼 lint 用 oxlint 而不是 ESLint
+
+原本要裝的是 ESLint + typescript-eslint，裝不起來：**typescript-eslint 明確
+拒絕 TypeScript 7**（不是 peer 版本警告，是啟動時直接丟錯），而本專案用的是
+TS 7.0。官方的追蹤在 typescript-eslint#10940，在它支援之前只有三條路：
+
+| 選項 | 為什麼不選 |
+| --- | --- |
+| 把 TypeScript 降回 6.x | 為了 lint 工具而讓語言版本倒退，本末倒置 |
+| 並存安裝一份 TS 6 給 lint 用 | 兩份 TypeScript、一套 npm alias 覆寫，CI 上還要裝兩次。設定的複雜度超過它擋下的 bug |
+| 只用 Prettier，不 lint | 格式一致但沒有規則檢查 |
+
+選 **oxlint**：它自己解析 TypeScript，不透過 TypeScript 的 API，所以跟語言版本
+無關——這正是眼前這個問題的成因，換掉就沒有了。
+
+值得說清楚的是**這裡的 lint 本來就不需要做太多**。tsconfig 已經開了 `strict`、
+`noUnusedLocals`、`noUnusedParameters`、`noImplicitReturns`、
+`noFallthroughCasesInSwitch` 與 `noUncheckedIndexedAccess`——一般把 lint 找進來
+要抓的東西，編譯器已經在抓了，而且抓得更準。留給 oxlint 的是型別檢查沒有意見的
+那幾條（`no-console`、`no-explicit-any`、type import 的一致性）。
+
+Prettier 負責格式，`.prettierignore` 排除 `*.md`：Prettier 以**字元數**對齊
+Markdown 表格，而一個中文字是一個字元、兩欄寬，`docs/` 裡的表格會被排歪。
+
 ## 瀏覽器限制與對策
 
 | 問題 | 對策 |
